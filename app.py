@@ -1,6 +1,13 @@
 from __future__ import annotations
-import os, io, json, zipfile, math
+
+import io
+import json
+import math
+import zipfile
+from dataclasses import asdict
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -9,29 +16,18 @@ import allocation_split_numpy_core as core
 import allocation_v35_pruned_enhancements as enh35
 import allocation_v36_context_features as enh36
 import allocation_v37_competition_features as enh37
+import allocation_v39_feature_pruned_ak as enh39
 import allocation_site802_specialist as site802
 import allocation_ak_specialist as ak_specialist
-import allocation_v39_feature_pruned_ak as enh39
 
 APP_DIR = Path(__file__).resolve().parent
 ART = APP_DIR
-REPORTS = APP_DIR
-
 AK_SITES = {"248", "159", "212", "145", "121"}
 
-st.set_page_config(
-    page_title="Allocation Split Expert v3.9 Feature-Pruned AK + Site 802",
-    layout="wide",
-)
-st.title("Allocation Split Expert v3.9 Feature-Pruned AK + Site 802")
-st.caption(
-    "Flat Streamlit app for the v3.9 feature-pruned allocation model: original v3 split models, "
-    "Site 802 specialist, AK specialist, competition-aware/context features, and no residual correction."
-)
-
+st.set_page_config(page_title="Allocation Multiple Model", layout="wide")
 
 # -----------------------------------------------------------------------------
-# Loading helpers
+# JSON / artifact helpers
 # -----------------------------------------------------------------------------
 
 def _read_json(path: Path, default=None):
@@ -44,30 +40,34 @@ def _read_json(path: Path, default=None):
     return {} if default is None else default
 
 
-def _load_npz_from_flat_or_parts(name: str):
-    """Load a model stored either as name.npz or flat split files name.npz.part000..."""
+def _load_npz_from_artifacts(name: str):
+    """Load a model stored as a full NPZ, flat parts, or model_parts/name.part000."""
+    part_dir = ART / "model_parts"
+    part_paths = sorted(part_dir.glob(f"{name}.part*")) if part_dir.exists() else []
+    if not part_paths:
+        part_paths = sorted(ART.glob(f"{name}.part*"))
+    if part_paths:
+        data = b"".join(p.read_bytes() for p in part_paths)
+        return np.load(io.BytesIO(data), allow_pickle=True)
     direct = ART / name
     if direct.exists():
         return np.load(direct, allow_pickle=True)
-    part_paths = sorted(ART.glob(f"{name}.part*"))
-    if not part_paths:
-        raise FileNotFoundError(f"Could not find {name} or split parts {name}.part000...")
-    data = b"".join(p.read_bytes() for p in part_paths)
-    return np.load(io.BytesIO(data), allow_pickle=True)
+    raise FileNotFoundError(f"Could not find {name}, model_parts/{name}.part*, or {name}.part*.")
 
 
-def _model_from_compact(z, role: str):
-    meta = json.loads(str(z[f"{role}__meta"].item()))
-    model = core.NumpyMLP(
-        meta["input_dim"],
-        meta["output_dim"],
-        tuple(meta["hidden"]),
-        meta["task"],
-        dropout=meta.get("dropout", 0.0),
-    )
-    n = len(meta["hidden"]) + 1
-    model.W = [z[f"{role}__W{i}"].astype(np.float32) for i in range(n)]
-    model.b = [z[f"{role}__b{i}"].astype(np.float32) for i in range(n)]
+def _unpack_mlp_from_prefix(z, prefix: str, task: str):
+    w_keys = sorted([k for k in z.files if k.startswith(prefix + "__W")], key=lambda x: int(x.split("__W")[-1]))
+    b_keys = sorted([k for k in z.files if k.startswith(prefix + "__b")], key=lambda x: int(x.split("__b")[-1]))
+    if not w_keys or len(w_keys) != len(b_keys):
+        return None
+    weights = [z[k].astype(np.float32) for k in w_keys]
+    biases = [z[k].astype(np.float32) for k in b_keys]
+    input_dim = weights[0].shape[0]
+    output_dim = weights[-1].shape[1]
+    hidden = tuple(w.shape[1] for w in weights[:-1])
+    model = core.NumpyMLP(input_dim, output_dim, hidden, task=task, dropout=0.0)
+    model.W = weights
+    model.b = biases
     model.mW = [np.zeros_like(w) for w in model.W]
     model.vW = [np.zeros_like(w) for w in model.W]
     model.mb = [np.zeros_like(b) for b in model.b]
@@ -75,52 +75,118 @@ def _model_from_compact(z, role: str):
     return model
 
 
-@st.cache_resource(show_spinner="Loading v3.9 model bundle...")
+def _load_segment_models(segment: str):
+    z = _load_npz_from_artifacts(f"{segment}_model.npz")
+    classifiers = []
+    regressors = []
+    # New continued-training format: classifier_0, classifier_1, classifier_2, etc.
+    for i in range(20):
+        clf = _unpack_mlp_from_prefix(z, f"classifier_{i}", "softmax")
+        if clf is None:
+            break
+        classifiers.append(clf)
+    for i in range(20):
+        reg = _unpack_mlp_from_prefix(z, f"regressor_{i}", "regression")
+        if reg is None:
+            break
+        regressors.append(reg)
+    # Older compact format fallback: classifier / regressor.
+    if not classifiers:
+        clf = _unpack_mlp_from_prefix(z, "classifier", "softmax")
+        if clf is not None:
+            classifiers.append(clf)
+    if not regressors:
+        reg = _unpack_mlp_from_prefix(z, "regressor", "regression")
+        if reg is not None:
+            regressors.append(reg)
+    if not classifiers or not regressors:
+        raise ValueError(f"Could not load {segment} classifier/regressor ensemble from {segment}_model.npz.")
+    return {
+        "classifiers": classifiers,
+        "regressors": regressors,
+        "classifier": classifiers[0],
+        "regressor": regressors[0],
+        "residual": None,
+    }
+
+
+def _safe_numeric_frame(df: pd.DataFrame) -> pd.DataFrame:
+    out = pd.DataFrame(index=df.index)
+    for c in df.columns:
+        s = pd.to_numeric(df[c], errors="coerce")
+        if s.notna().sum() == 0:
+            continue
+        out[c] = s.replace([np.inf, -np.inf], np.nan).fillna(0.0).astype(float)
+    return out
+
+
+def build_enhanced_feature_matrix(df: pd.DataFrame, config: Dict[str, Any], fit: bool = False):
+    """Build the full v3.9 1,076-feature matrix used by the continued models."""
+    canon = core.canonicalize_columns(df, target_required=core.TARGET_COL in df.columns)
+    config = dict(config or {})
+    core_cfg_dict = config.get("core_feature_config", {})
+    core_cfg = core.FeatureConfig(**core_cfg_dict) if core_cfg_dict else core.FeatureConfig()
+    X_core, core_cfg = core.build_features(canon, config=core_cfg, fit=fit)
+
+    extra = enh37.competition_feature_frame(canon, base_pred_units=None, base_confidence=None)
+    extra = _safe_numeric_frame(extra)
+    pruned = set(config.get("pruned_features", getattr(enh39, "PRUNED_FEATURES", [])))
+    extra = extra[[c for c in extra.columns if c not in pruned]]
+    extra = extra.loc[:, ~extra.columns.duplicated()].copy()
+
+    if fit:
+        mean = extra.mean(axis=0).replace([np.inf, -np.inf], np.nan).fillna(0.0).to_numpy(float)
+        std = extra.std(axis=0).replace([np.inf, -np.inf], np.nan).fillna(1.0).to_numpy(float)
+        std[std < 1e-6] = 1.0
+        config["extra_feature_names"] = list(extra.columns)
+        config["extra_feature_mean"] = mean.tolist()
+        config["extra_feature_std"] = std.tolist()
+        config["core_feature_config"] = asdict(core_cfg)
+        config["pruned_features"] = sorted(pruned)
+    else:
+        names = list(config.get("extra_feature_names", []))
+        for c in names:
+            if c not in extra.columns:
+                extra[c] = 0.0
+        extra = extra[names]
+        mean = np.asarray(config.get("extra_feature_mean", [0.0] * len(names)), dtype=float)
+        std = np.asarray(config.get("extra_feature_std", [1.0] * len(names)), dtype=float)
+        std[std < 1e-6] = 1.0
+
+    if len(extra.columns):
+        X_extra = ((extra.to_numpy(dtype=float) - mean) / std).astype(np.float32)
+        X_extra = np.nan_to_num(X_extra, nan=0.0, posinf=0.0, neginf=0.0)
+        X = np.hstack([X_core.astype(np.float32), X_extra])
+    else:
+        X = X_core.astype(np.float32)
+
+    config["feature_names"] = list(getattr(core_cfg, "feature_names", []) or []) + [f"ctx__{c}" for c in list(extra.columns)]
+    config["feature_count"] = int(X.shape[1])
+    config["core_feature_count"] = int(X_core.shape[1])
+    config["extra_feature_count"] = int(len(extra.columns))
+    return X.astype(np.float32), config
+
+
+@st.cache_resource(show_spinner="Loading models...")
 def load_bundle():
     meta = _read_json(ART / "model_config.json")
-    fc = meta.get("feature_config", {})
-    feat_cfg = core.FeatureConfig(
-        hash_dim_class=fc.get("hash_dim_class", 96),
-        hash_dim_line=fc.get("hash_dim_line", 128),
-        hash_dim_site=fc.get("hash_dim_site", 96),
-        hash_dim_rank=fc.get("hash_dim_rank", 8),
-        hash_dim_flag=fc.get("hash_dim_flag", 8),
-        hash_dim_dc_bucket=fc.get("hash_dim_dc_bucket", 8),
-        hash_dim_raw_dc_bucket=fc.get("hash_dim_raw_dc_bucket", 12),
-        numeric_mean=fc.get("numeric_mean"),
-        numeric_std=fc.get("numeric_std"),
-        feature_names=fc.get("feature_names"),
-    )
-    models = {}
-    for seg in ["allocate", "review"]:
-        z = _load_npz_from_flat_or_parts(f"{seg}_model.npz")
-        clf = _model_from_compact(z, "classifier")
-        reg = _model_from_compact(z, "regressor")
-        models[seg] = {
-            "classifier": clf,
-            "regressor": reg,
-            "classifiers": [clf],
-            "regressors": [reg],
-            "residual": None,
-        }
+    models = {"allocate": _load_segment_models("allocate"), "review": _load_segment_models("review")}
+    bundle = {
+        "meta": meta,
+        "feature_config": meta.get("feature_config", {}),
+        "models": models,
+        "site802_model": site802.load_site802_model(str(ART / "site802_specialist_model.npz")),
+        "ak_specialist_model": ak_specialist.load_ak_specialist_model(str(ART / "ak_specialist_model.npz")),
+    }
     params35 = enh35.load_v35_params(str(ART / "v35_pruned_params.json"))
     params36 = enh36.load_v36_params(str(ART / "v36_context_params.json"))
     params37 = enh37.load_v37_params(str(ART / "v37_competition_params.json"))
     params39 = enh39.load_v39_params(str(ART / "v39_feature_pruned_params.json"))
-    site_model = site802.load_site802_model(str(ART / "site802_specialist_model.npz"))
-    ak_model = ak_specialist.load_ak_specialist_model(str(ART / "ak_specialist_model.npz"))
-    bundle = {
-        "meta": meta,
-        "feature_config": feat_cfg,
-        "models": models,
-        "site802_model": site_model,
-        "ak_specialist_model": ak_model,
-    }
     return bundle, params35, params36, params37, params39
 
 
 # -----------------------------------------------------------------------------
-# General utilities
+# Input parsing / normalization
 # -----------------------------------------------------------------------------
 
 def safe_cell_to_str(x):
@@ -140,11 +206,7 @@ def find_header_row(df):
     wanted = set(core.ALLOWED_FEATURES + [core.TARGET_COL])
     best_i, best_hits = 0, -1
     for i in range(min(len(df), 90)):
-        hits = sum(
-            1
-            for v in df.iloc[i].tolist()
-            if core.CANONICAL_ALIASES.get(core._norm_name(v)) in wanted
-        )
+        hits = sum(1 for v in df.iloc[i].tolist() if core.CANONICAL_ALIASES.get(core._norm_name(v)) in wanted)
         if hits > best_hits:
             best_i, best_hits = i, hits
     return best_i if best_hits >= 8 else 0
@@ -192,7 +254,6 @@ def find_target_column(df: pd.DataFrame):
 
 
 def int_or_blank_series(values) -> pd.Series:
-    """Return display-safe integer Final Alloc values: integer for >0, blank otherwise."""
     nums = pd.to_numeric(pd.Series(values), errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
     nums = np.rint(nums.to_numpy(dtype=float)).astype(np.int64)
     return pd.Series(np.where(nums > 0, nums.astype(object), ""))
@@ -202,9 +263,119 @@ def numeric_units(values) -> np.ndarray:
     return pd.to_numeric(pd.Series(values), errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0).to_numpy(dtype=float)
 
 
+# -----------------------------------------------------------------------------
+# Prediction using the full v3.9 enhanced feature matrix
+# -----------------------------------------------------------------------------
+
+def _average_classifier_proba(models: List[Any], X: np.ndarray) -> np.ndarray:
+    return np.mean([m.predict_proba(X) for m in models], axis=0)
+
+
+def _average_regression(models: List[Any], X: np.ndarray) -> np.ndarray:
+    return np.mean([m.predict(X) for m in models], axis=0)
+
+
+def _segment_predict(segment_models: Dict[str, Any], X: np.ndarray, work_segment: pd.DataFrame, cfg: Dict[str, Any]):
+    p = _average_classifier_proba(segment_models["classifiers"], X)
+    positive_prob = 1.0 - p[:, 0]
+    reg_packs = _average_regression(segment_models["regressors"], X)
+    flm = np.maximum(core.to_float_array(work_segment["FLM"], 1.0), 1.0)
+    rec_packs = core.to_float_array(work_segment["Alloc. Rec."], 0.0) / flm
+    raw_packs = core._blended_pack_prediction(p, reg_packs, rec_packs, cfg)
+    g = np.argmax(p, axis=1)
+    return p, positive_prob, raw_packs, g
+
+
+def predict_core_enhanced(cleaned: pd.DataFrame, bundle: Dict[str, Any], target_required: bool = False):
+    work = core.canonicalize_columns(cleaned, target_required=target_required)
+    X, _ = build_enhanced_feature_matrix(work, bundle["feature_config"], fit=False)
+    expected_dim = int(bundle["models"]["allocate"]["classifier"].input_dim)
+    if X.shape[1] != expected_dim:
+        raise ValueError(f"Feature matrix has {X.shape[1]} columns but model expects {expected_dim}. Check model_config.json and feature modules.")
+
+    flags = core.clean_flag(work["Flag"].values)
+    alloc_mask = core.flag_mask(flags, "ALLOCATE")
+    review_mask = core.flag_mask(flags, "REVIEW")
+    n = len(work)
+    pred = np.full(n, np.nan, dtype=float)
+    group_pred = np.full(n, "", dtype=object)
+    conf = np.zeros(n, dtype=float)
+    raw_packs_all = np.zeros(n, dtype=float)
+    cfg = dict(bundle["meta"].get("train_config", {}))
+    cfg["allocate_threshold"] = bundle["meta"].get("allocate_threshold", cfg.get("allocate_threshold", 0.40))
+    cfg["review_threshold"] = bundle["meta"].get("review_threshold", cfg.get("review_threshold", 0.50))
+
+    for segment, mask, threshold in [
+        ("allocate", alloc_mask, cfg.get("allocate_threshold", 0.40)),
+        ("review", review_mask, cfg.get("review_threshold", 0.50)),
+    ]:
+        idx = np.where(mask)[0]
+        if len(idx) == 0:
+            continue
+        p, positive_prob, raw_packs, g = _segment_predict(bundle["models"][segment], X[idx], work.iloc[idx], cfg)
+        conf[idx] = positive_prob
+        raw_packs_all[idx] = raw_packs
+        group_pred[idx] = np.array(core.GROUP_LABELS, dtype=object)[g]
+        if segment == "allocate":
+            flm = np.maximum(core.to_float_array(work.iloc[idx]["FLM"], 1.0), 1.0)
+            dc = core.to_float_array(work.iloc[idx]["Dc Avail"], 0.0)
+            units = raw_packs * flm
+            rounded = np.where((positive_prob >= threshold) & (dc > 0), np.round(units / flm) * flm, np.nan)
+            rounded = np.minimum(rounded, dc)
+            rounded = np.where((positive_prob >= threshold) & (dc > 0) & (dc < flm), dc, rounded)
+            rounded = np.where(rounded <= 0, np.nan, rounded)
+            pred[idx] = rounded
+
+    ridx = np.where(review_mask)[0]
+    if len(ridx):
+        rwork = work.iloc[ridx].copy()
+        need = core.row_need_score(rwork, conf[ridx], raw_packs_all[ridx])
+        rwork["__idx"] = ridx
+        rwork["__need"] = need
+        rwork["__pool"] = (
+            rwork["Class Name"].astype(str).str.upper().str.strip() + "|" +
+            rwork["Line Name"].astype(str).str.upper().str.strip() + "|" +
+            rwork["Cost"].astype(str).str.upper().str.strip() + "|" +
+            rwork["Dc Avail"].astype(str).str.upper().str.strip()
+        )
+        for _, sub in rwork.sort_values("__need", ascending=False).groupby("__pool", sort=False):
+            remaining = float(np.nanmax(core.to_float_array(sub["Dc Avail"], 0.0)))
+            for _, row in sub.sort_values("__need", ascending=False).iterrows():
+                i = int(row["__idx"])
+                if remaining <= 0:
+                    break
+                if conf[i] < cfg.get("review_threshold", 0.50):
+                    continue
+                flm = max(float(row["FLM"] if not pd.isna(row["FLM"]) else 1.0), 1.0)
+                want = max(raw_packs_all[i] * flm, 0.0)
+                if want <= 0:
+                    continue
+                rounded = round(want / flm) * flm
+                if rounded <= 0 and want > 0:
+                    rounded = flm
+                if remaining < flm:
+                    alloc = remaining
+                else:
+                    alloc = min(rounded, remaining)
+                    alloc = math.floor(alloc / flm) * flm
+                    if alloc <= 0 and remaining > 0:
+                        alloc = min(flm, remaining)
+                if alloc > 0:
+                    pred[i] = alloc
+                    remaining -= alloc
+
+    out = work.copy()
+    out["Predicted Final Alloc"] = pred
+    out["Predicted Group"] = group_pred
+    out["Allocation Confidence"] = conf
+    out["Raw Predicted FLMs"] = raw_packs_all
+    out["Predicted Final Alloc"] = out["Predicted Final Alloc"].where(~np.isnan(out["Predicted Final Alloc"]), "")
+    return out
+
+
 def predict_allocation(cleaned: pd.DataFrame):
     bundle, params35, params36, params37, params39 = load_bundle()
-    base = core.predict_dataframe(cleaned, bundle, target_required=False)
+    base = predict_core_enhanced(cleaned, bundle, target_required=False)
     canon = core.canonicalize_columns(cleaned, target_required=False)
     audit = enh35.apply_v35_pruned_no_residual(canon, base, params35)
     audit = enh36.apply_v36_context_enhanced(canon, audit, params36)
@@ -217,7 +388,7 @@ def predict_allocation(cleaned: pd.DataFrame):
 
 
 # -----------------------------------------------------------------------------
-# Metrics and audit helpers
+# Metrics / audit helpers
 # -----------------------------------------------------------------------------
 
 def build_segment_masks(canon: pd.DataFrame, audit: pd.DataFrame):
@@ -303,16 +474,26 @@ def build_row_audit(cleaned: pd.DataFrame, canon: pd.DataFrame, audit: pd.DataFr
 
 
 # -----------------------------------------------------------------------------
-# Feature deep-dive helpers
+# Feature information
 # -----------------------------------------------------------------------------
 
-def _load_feature_matrix():
-    p = REPORTS / "feature_decision_matrix.csv"
+def _load_feature_catalog():
+    p = ART / "feature_catalog.csv"
     if p.exists():
         try:
             return pd.read_csv(p)
         except Exception:
-            return pd.DataFrame()
+            pass
+    return pd.DataFrame()
+
+
+def _load_feature_matrix():
+    p = ART / "feature_decision_matrix.csv"
+    if p.exists():
+        try:
+            return pd.read_csv(p)
+        except Exception:
+            pass
     return pd.DataFrame()
 
 
@@ -320,156 +501,82 @@ def overview_stats(bundle):
     meta = bundle.get("meta", {})
     summary = _read_json(ART / "model_summary.json")
     train_rows = summary.get("rows") or meta.get("rows") or meta.get("training_rows")
-    if not train_rows:
-        # Some older compact exports did not store train rows. Use the packaged v3.9 evaluation row count
-        # as a nonzero visibility fallback rather than displaying an incorrect zero.
-        try:
-            sm = pd.read_csv(REPORTS / "v39_summary_metrics_weighted.csv")
-            row = sm[(sm["model"].astype(str).str.contains("v3_9", na=False)) & (sm["segment"].eq("All"))].head(1)
-            if not row.empty:
-                train_rows = f"{int(row.iloc[0]['rows']):,} audited rows"
-        except Exception:
-            train_rows = "Not stored in artifact"
-    else:
-        train_rows = f"{int(train_rows):,}"
-
-    features = summary.get("features") or meta.get("features") or meta.get("feature_count")
+    features = summary.get("features") or meta.get("feature_count") or meta.get("feature_config", {}).get("feature_count")
     if not features:
         try:
             features = int(bundle["models"]["allocate"]["classifier"].input_dim)
         except Exception:
-            fc = meta.get("feature_config", {})
-            features = len(fc.get("feature_names", []) or [])
-    return train_rows, features
+            features = "—"
+    return train_rows or "—", features
 
 
-def show_feature_deep_dive(bundle):
-    meta = bundle.get("meta", {})
+def show_feature_review(bundle):
     feature_df = _load_feature_matrix()
-    st.subheader("Feature deep dive and feature-importance review")
-    st.markdown(
-        """
-This page replaces the old smoke-test report. It is focused on **what the model uses**, **why those features matter**, and **how the feature-pruned v3.9 stack decides allocations**.
-
-The v3.9 model is intentionally built around the original worksheet fields first. The engineered features do not introduce outside data; they transform the approved columns into signals that are easier for the Allocate model, Review model, Site 802 specialist, and AK specialist to use.
-"""
+    catalog = _load_feature_catalog()
+    meta = bundle.get("meta", {})
+    fc = meta.get("feature_config", {})
+    st.markdown("### Feature review")
+    st.write(
+        "The model uses the approved worksheet fields first, then adds engineered signals for demand agreement, supply shortage, pack-size risk, DC pressure, class-line competition, and specialist behavior."
     )
-
     c1, c2, c3, c4 = st.columns(4)
-    train_rows, feature_count = overview_stats(bundle)
-    c1.metric("Packaged model inputs", f"{int(feature_count):,}" if isinstance(feature_count, (int, float)) else str(feature_count))
-    c2.metric("Feature decisions", f"{len(feature_df):,}" if not feature_df.empty else "—")
-    c3.metric("Kept features", f"{int((feature_df.get('decision', pd.Series(dtype=str)).astype(str).str.upper() == 'KEEP').sum()):,}" if not feature_df.empty else "—")
-    c4.metric("Removed features", f"{int((feature_df.get('decision', pd.Series(dtype=str)).astype(str).str.upper() == 'REMOVE').sum()):,}" if not feature_df.empty else "—")
+    c1.metric("Total features", f"{int(fc.get('feature_count', bundle['models']['allocate']['classifier'].input_dim)):,}")
+    c2.metric("Core features", f"{int(fc.get('core_feature_count', 0)):,}" if fc.get("core_feature_count") else "—")
+    c3.metric("Context features", f"{int(fc.get('extra_feature_count', 0)):,}" if fc.get("extra_feature_count") else "—")
+    c4.metric("Pruned features", f"{len(fc.get('pruned_features', [])):,}")
 
-    st.markdown("### 1. How features flow through the model")
+    st.markdown("#### Most important feature families")
     st.markdown(
         """
-| Model layer | Main feature use | Why it matters |
+| Feature family | What it tells the model | Most useful for |
 |---|---|---|
-| **Allocate classifier** | `Flag`, `Alloc. Rec.`, `Proj. Demand`, `Supply`, `Dc Avail`, shortage/pressure signals, class-line identity | Decides whether a row deserves any allocation at all. |
-| **Allocate FLM regressor** | `FLM`, `MIL`, `Dc Avail`, `Alloc. Rec.`, `Proj. Demand`, post-allocation supply-risk features | Estimates how many FLMs should be allocated after the row has passed the classifier. |
-| **Review classifier / ranker** | demand agreement, shortage FLMs, rank score, class-line competition, DC pressure | Review rows are ranking-like: the model prioritizes stores until DC inventory is exhausted. |
-| **Site 802 specialist** | Site 802 flag, rec/proj disagreement, supply pressure, single-FLM risk | Site 802 historically behaved differently, so this layer adjusts rows only for that site. |
-| **AK specialist** | AK site group, shortage, recent sales support, rec trust, class-line pressure | AK stores often need different rescue/cut behavior due to store geography and allocation constraints. |
-| **v3.9 pruning layer** | weak AK Review rescue gates, sparse-demand checks, rec-trust guardrails | Removes low-confidence specialist rescues that added false positives in testing. |
-"""
-    )
-
-    st.markdown("### 2. Feature families that are most important")
-    st.markdown(
-        """
-**Original worksheet fields are the foundation.** The model still sees the fields you manually rely on: `Alloc. Rec.`, `Proj. Demand`, `Supply`, `Dc Avail`, `FLM`, `MIL`, `Rank`, `L30`, `D30`, `D60`, `LW`, `TTM`, `Class Name`, `Line Name`, and `Site`.
-
-The highest-value engineered families are:
-
-1. **Demand agreement features** — count how many demand signals agree inventory is needed.
-2. **Shortage and pressure features** — compare demand/projection against current supply.
-3. **Pack-size features** — show how meaningful one FLM is relative to demand.
-4. **Post-allocation risk features** — estimate whether following the recommendation would over-supply the store.
-5. **Class-line competition features** — compare a row to peer rows in the same class/line group.
-6. **Raw Dc Avail buckets** — keep your previously requested 25/50/100/300/600/1000/2000/2000+ DC bands visible.
-7. **Specialist flags** — isolate Site 802 and AK store behaviors without changing every other row.
+| Original sheet fields | Direct worksheet signals such as `Alloc. Rec.`, `Proj. Demand`, `Supply`, `Dc Avail`, `FLM`, `Rank`, and demand history | All models |
+| Demand agreement | Whether multiple demand signals agree that supply is short | Reducing weak false positives |
+| Shortage / pressure | How far demand, projection, or recommendation exceeds current supply | Allocate and Review base models |
+| Pack-size risk | Whether one FLM would over-supply the store | Single-FLM decisions |
+| DC buckets and scarcity | Whether inventory is tight, moderate, or abundant | Review ranking and DC-constrained allocation |
+| Class-line competition | Whether a row is strong relative to peer rows in the same item family | Review rows |
+| Site 802 and AK specialist signals | Site-specific cut/rescue behavior | Specialist models |
 """
     )
 
     if not feature_df.empty:
-        st.markdown("### 3. Feature pruning decision matrix")
-        decision_counts = feature_df["decision"].fillna("Unknown").astype(str).value_counts().reset_index()
-        decision_counts.columns = ["Decision", "Count"]
-        st.dataframe(decision_counts, use_container_width=True)
-
+        st.markdown("#### Feature pruning summary")
+        if "decision" in feature_df.columns:
+            counts = feature_df["decision"].fillna("Unknown").astype(str).value_counts().reset_index()
+            counts.columns = ["Decision", "Count"]
+            st.dataframe(counts, use_container_width=True)
         show_cols = [c for c in ["feature", "family", "decision", "scope", "rationale", "evidence_note"] if c in feature_df.columns]
-        keep_df = feature_df[feature_df["decision"].astype(str).str.upper().eq("KEEP")]
-        rem_df = feature_df[feature_df["decision"].astype(str).str.upper().eq("REMOVE")]
-
-        with st.expander("Features kept in the primary model", expanded=False):
-            st.dataframe(keep_df[show_cols].head(250), use_container_width=True)
-        with st.expander("Features removed or de-emphasized", expanded=False):
-            st.dataframe(rem_df[show_cols].head(250), use_container_width=True)
-
-        numeric_cols = [c for c in feature_df.columns if c.endswith("abs_corr_packs") or c.endswith("coef_importance") or c in ["ALL_abs_corr_packs", "site802_total_coef_importance"]]
-        top_frames = []
-        if "ALL_abs_corr_packs" in feature_df.columns:
-            tmp = feature_df.copy()
-            tmp["ALL_abs_corr_packs"] = pd.to_numeric(tmp["ALL_abs_corr_packs"], errors="coerce")
-            tmp = tmp.sort_values("ALL_abs_corr_packs", ascending=False).head(25)
-            top_frames.append(("Overall strongest univariate relationship to Final Alloc", tmp))
-        if "site802_total_coef_importance" in feature_df.columns:
-            tmp = feature_df.copy()
-            tmp["site802_total_coef_importance"] = pd.to_numeric(tmp["site802_total_coef_importance"], errors="coerce")
-            tmp = tmp.sort_values("site802_total_coef_importance", ascending=False).head(25)
-            top_frames.append(("Site 802 specialist coefficient importance", tmp))
-        for title, frame in top_frames:
-            with st.expander(title, expanded=False):
-                cols = [c for c in ["feature", "family", "decision", "rationale", "ALL_abs_corr_packs", "site802_total_coef_importance"] if c in frame.columns]
-                st.dataframe(frame[cols], use_container_width=True)
-
+        if show_cols:
+            with st.expander("Feature decision matrix", expanded=False):
+                st.dataframe(feature_df[show_cols], use_container_width=True)
         st.download_button(
             "Download feature decision matrix",
             feature_df.to_csv(index=False).encode("utf-8"),
             file_name="feature_decision_matrix.csv",
             mime="text/csv",
-            key="download_feature_decision_matrix_deep_dive",
+            key="download_feature_decision_matrix",
         )
 
-    st.markdown("### 4. Why some features were removed")
-    st.markdown(
-        """
-The feature pruning work removed features that were either redundant, unstable, or likely to preserve older model mistakes:
+    if not catalog.empty:
+        with st.expander("Feature catalog", expanded=False):
+            st.dataframe(catalog.head(2000), use_container_width=True)
+        st.download_button(
+            "Download feature catalog",
+            catalog.to_csv(index=False).encode("utf-8"),
+            file_name="feature_catalog.csv",
+            mime="text/csv",
+            key="download_feature_catalog",
+        )
 
-- **Old-model-output features** such as `base_pred_units`, `base_flms`, and `base_confidence` can leak old model behavior into the new model and make errors repeat.
-- **Unstable DC ratios** such as `proj_to_dc` and `rec_to_dc` can become noisy when `Dc Avail` is small.
-- **Duplicate demand summaries** such as max/median demand features were removed when stronger demand agreement and shortage features already captured the same idea.
-- **Sparse single-signal demand flags** were de-emphasized because one isolated demand signal can create false positive allocations.
-
-The result is a model that still has rich feature engineering, but it is less likely to overreact to noisy rows.
-"""
+    st.markdown("#### How to audit feature behavior")
+    st.write(
+        "Rows with high demand agreement, strong shortage, positive recommendation, and enough DC inventory should usually receive allocation. Rows where `Alloc. Rec.` is high but recent sales support is weak are cut candidates. Review rows should be judged relative to peer rows in the same class-line group. Site 802 and AK rows should be checked separately because their specialist models can apply different cut/rescue behavior."
     )
-
-    st.markdown("### 5. How to interpret feature use in audits")
-    st.markdown(
-        """
-When auditing an uploaded file, focus on these patterns:
-
-- A row with **high demand agreement + low supply + positive recommendation** should usually predict a nonzero allocation.
-- A row with **high `Alloc. Rec.` but low recent sales support** is a cut candidate.
-- A row with **large FLM relative to demand** is risky even if one FLM is available.
-- Review rows should be judged by **relative priority inside their class-line group**, not only by row-level demand.
-- Site 802 and AK rows should be reviewed separately because their specialist layers can override or rescue base-model behavior.
-"""
-    )
-
-
-def show_static_feature_report():
-    p = REPORTS / "SMOKE_TEST_REPORT.md"
-    if p.exists():
-        with st.expander("Packaged feature deep-dive text report", expanded=False):
-            st.markdown(p.read_text(encoding="utf-8"))
 
 
 # -----------------------------------------------------------------------------
-# App boot
+# App UI
 # -----------------------------------------------------------------------------
 try:
     bundle, v35_params, v36_params, v37_params, v39_params = load_bundle()
@@ -478,61 +585,25 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
+st.title("Allocation Multiple Model")
 with st.sidebar:
-    st.header("v3.9 model")
-    st.write("Flat artifact layout")
-    st.code("model_config.json\nallocate_model.npz\nreview_model.npz\nsite802_specialist_model.npz\nak_specialist_model.npz")
+    st.header("Controls")
     drop_non_model = st.checkbox("Only process Allocate and Review rows", value=True)
-    st.write("Site 802 specialist loaded:", bundle.get("site802_model") is not None)
-    st.write("AK specialist loaded:", bundle.get("ak_specialist_model") is not None)
+    st.divider()
+    st.write("**Specialists**")
+    st.write("Site 802:", "Loaded" if bundle.get("site802_model") is not None else "Not loaded")
+    st.write("AK stores:", "Loaded" if bundle.get("ak_specialist_model") is not None else "Not loaded")
 
-model_tab, predict_tab, audit_tab, feature_tab, files_tab = st.tabs([
+predict_tab, audit_tab, overview_tab, features_tab, files_tab = st.tabs([
+    "Predict",
+    "Audit",
     "Model overview",
-    "Predict allocation",
-    "Audit uploaded file",
-    "Feature deep dive",
-    "Artifact files",
+    "Features",
+    "Files",
 ])
 
-with model_tab:
-    meta = bundle.get("meta", {})
-    cfg = meta.get("train_config", {})
-    summary = _read_json(ART / "model_summary.json")
-    train_rows_display, feature_count = overview_stats(bundle)
-    st.subheader("What this model does")
-    st.markdown(
-        """
-This is the **v3.9 Feature-Pruned AK + Site 802** app. It uses separate **Allocate** and **Review** two-stage models, then applies feature-pruned business logic and specialist layers.
-
-The model only uses the approved worksheet fields: `Class Name`, `Line Name`, `Site`, `MIL`, `FLM`, `Cost`, `L30`, `D30`, `D60`, `LW`, `TTM`, `Supply`, `Dc Avail`, `Rank`, `Proj. Demand`, `Alloc. Rec.`, and `Flag`.
-
-The deployed stack includes:
-
-- Original v3 split Allocate/Review classifiers and FLM regressors
-- v3.3 raw `Dc Avail` buckets and `Proj. Demand` / `Alloc. Rec.` feature expansion
-- v3.5 feature-pruned no-residual layer
-- v3.6 context features
-- v3.7 competition-aware workbook/class-line features
-- Site 802 specialist model
-- AK-store specialist model for sites `248`, `159`, `212`, `145`, and `121`
-- v3.9 AK Review feature pruning
-"""
-    )
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Training / audit rows", str(train_rows_display))
-    c2.metric("Model input features", f"{int(feature_count):,}" if isinstance(feature_count, (int, float)) else str(feature_count))
-    c3.metric("Allocate threshold", meta.get("allocate_threshold", cfg.get("allocate_threshold", "—")))
-    c4.metric("Review threshold", meta.get("review_threshold", cfg.get("review_threshold", "—")))
-    st.info(
-        "If older compact artifacts do not store training-row counts, this app shows the packaged v3.9 audit row count instead of displaying zero. "
-        "Feature count is read directly from the loaded neural-network input dimension."
-    )
-    with st.expander("Training configuration", expanded=False):
-        st.json(cfg)
-    with st.expander("Approved input columns", expanded=False):
-        st.write(core.ALLOWED_FEATURES)
-
 with predict_tab:
+    st.subheader("Predict Final Alloc.")
     up = st.file_uploader("Upload allocation workbook or CSV", type=["xlsb", "xlsx", "xlsm", "xls", "csv"], key="predict_upload")
     if up:
         try:
@@ -543,62 +614,38 @@ with predict_tab:
             target_col = find_target_column(output) or core.TARGET_COL
             output[target_col] = int_or_blank_series(audit["Predicted Final Alloc"]).values
             pred_num = numeric_units(audit["Predicted Final Alloc"])
-            flags = canon["Flag"].astype(str).str.upper()
-            st.success(f"Predicted {len(output):,} eligible rows.")
+            st.success(f"Processed {len(output):,} rows.")
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Rows", f"{len(output):,}")
             c2.metric("Nonzero allocations", f"{int((pred_num > 0).sum()):,}")
             c3.metric("Predicted units", f"{int(pred_num.sum()):,}")
-            c4.metric("AK rows", f"{int(clean_site_series(canon['Site']).isin(AK_SITES).sum()):,}")
+            c4.metric("Specialist rows", f"{int(clean_site_series(canon['Site']).eq('802').sum() + clean_site_series(canon['Site']).isin(AK_SITES).sum()):,}")
 
-            filter_choice = st.selectbox(
-                "Spot-check filter",
-                [
-                    "All rows",
-                    "Allocate rows",
-                    "Review rows",
-                    "Nonzero predictions",
-                    "Blank/zero predictions",
-                    "Site 802 rows",
-                    "AK store rows",
-                    "Site 802 specialist applied",
-                    "AK specialist applied",
-                    "v3.9 pruned rows",
-                ],
-            )
-            mask = np.ones(len(output), dtype=bool)
             masks = build_segment_masks(canon, audit)
-            if filter_choice in masks:
-                mask = masks[filter_choice]
-            elif filter_choice == "Blank/zero predictions":
-                mask = pred_num <= 0
-            elif filter_choice == "v3.9 pruned rows":
-                mask = audit.get("V39 Feature Pruning Applied", pd.Series([0] * len(audit))).astype(bool).to_numpy()
-
+            filter_choice = st.selectbox("View rows", list(masks.keys()), key="predict_filter")
+            mask = masks.get(filter_choice, np.ones(len(output), dtype=bool))
             st.dataframe(output.loc[mask].head(1000), use_container_width=True)
             st.download_button(
                 "Download filled CSV",
                 output.to_csv(index=False).encode("utf-8"),
-                file_name="allocation_v39_feature_pruned_ak_site802_filled_output.csv",
+                file_name="allocation_multiple_model_filled_output.csv",
                 mime="text/csv",
                 key="download_filled_csv",
             )
             st.download_button(
-                "Download audit CSV",
+                "Download model audit CSV",
                 audit.to_csv(index=False).encode("utf-8"),
-                file_name="allocation_v39_feature_pruned_ak_site802_audit.csv",
+                file_name="allocation_multiple_model_prediction_audit.csv",
                 mime="text/csv",
-                key="download_audit_csv",
+                key="download_prediction_audit_csv",
             )
         except Exception as e:
             st.error("Prediction failed.")
             st.exception(e)
 
 with audit_tab:
-    st.subheader("Audit an uploaded file against existing Final Alloc values")
-    st.markdown(
-        "Upload a workbook or CSV that already has data in `Final Alloc.`. The app will predict the file, compare predictions to the existing values, and calculate smoke-test-style accuracy by model path."
-    )
+    st.subheader("Audit uploaded file")
+    st.write("Upload a file that already contains `Final Alloc.` values to compare the model against the existing allocation decisions.")
     audit_up = st.file_uploader("Upload file for audit", type=["xlsb", "xlsx", "xlsm", "xls", "csv"], key="audit_upload")
     if audit_up:
         try:
@@ -606,25 +653,23 @@ with audit_tab:
             cleaned = drop_unnecessary_rows(raw, drop_non_model)
             target_col = find_target_column(cleaned)
             if target_col is None:
-                st.warning("No `Final Alloc.` column was detected, so this file can be predicted but not audited for accuracy.")
+                st.warning("No `Final Alloc.` column was detected. This file can be predicted, but accuracy cannot be audited.")
             else:
                 actual_raw = cleaned[target_col]
-                has_any_actual = actual_raw.notna().any() and (actual_raw.astype(str).str.strip() != "").any()
-                if not has_any_actual:
-                    st.warning("The `Final Alloc.` column exists, but it appears blank. No accuracy audit can be calculated.")
+                has_actual = actual_raw.notna().any() and (actual_raw.astype(str).str.strip() != "").any()
+                if not has_actual:
+                    st.warning("The `Final Alloc.` column exists but appears blank. No accuracy audit can be calculated.")
                 else:
                     canon, audit = predict_allocation(cleaned)
-                    actual = numeric_units(actual_raw)
-                    metrics = compute_audit_metrics(canon, audit, actual)
-                    row_audit = build_row_audit(cleaned, canon, audit, actual)
+                    metrics = compute_audit_metrics(canon, audit, actual_raw)
+                    row_audit = build_row_audit(cleaned, canon, audit, actual_raw)
                     all_row = metrics[metrics["Segment / model path"].eq("All rows")].iloc[0]
-                    st.success("Accuracy audit completed.")
+                    st.success("Audit completed.")
                     c1, c2, c3, c4 = st.columns(4)
                     c1.metric("Rows audited", f"{int(all_row['Rows']):,}")
                     c2.metric("MAE units", f"{all_row['MAE Units']:.3f}")
                     c3.metric("Exact rate", f"{all_row['Exact Rate']:.2%}")
                     c4.metric("Unit delta", f"{int(all_row['Unit Delta']):,}")
-                    st.markdown("### Accuracy by segment / model path")
                     display_metrics = metrics.copy()
                     for col in ["MAE Units", "RMSE Units"]:
                         display_metrics[col] = display_metrics[col].map(lambda x: f"{x:.3f}")
@@ -632,9 +677,8 @@ with audit_tab:
                         display_metrics[col] = display_metrics[col].map(lambda x: f"{x:.2%}")
                     st.dataframe(display_metrics, use_container_width=True)
 
-                    st.markdown("### Error analysis")
                     error_filter = st.selectbox(
-                        "Audit row filter",
+                        "Review audit rows",
                         ["All rows", "Errors only", "False positives", "False negatives", "Site 802 rows", "AK store rows", "Specialist-applied rows"],
                         key="audit_filter",
                     )
@@ -653,32 +697,36 @@ with audit_tab:
                     elif error_filter == "Specialist-applied rows":
                         mask = (pd.to_numeric(row_audit["Site 802 Specialist Applied"], errors="coerce").fillna(0).to_numpy() > 0) | (pd.to_numeric(row_audit["AK Specialist Applied"], errors="coerce").fillna(0).to_numpy() > 0)
                     st.dataframe(row_audit.loc[mask].head(1000), use_container_width=True)
-                    st.download_button(
-                        "Download audit metrics CSV",
-                        metrics.to_csv(index=False).encode("utf-8"),
-                        file_name="uploaded_file_accuracy_metrics.csv",
-                        mime="text/csv",
-                        key="download_uploaded_accuracy_metrics",
-                    )
-                    st.download_button(
-                        "Download row-level audit CSV",
-                        row_audit.to_csv(index=False).encode("utf-8"),
-                        file_name="uploaded_file_row_level_audit.csv",
-                        mime="text/csv",
-                        key="download_uploaded_row_audit",
-                    )
+                    st.download_button("Download audit metrics CSV", metrics.to_csv(index=False).encode("utf-8"), "uploaded_file_accuracy_metrics.csv", "text/csv", key="download_uploaded_accuracy_metrics")
+                    st.download_button("Download row-level audit CSV", row_audit.to_csv(index=False).encode("utf-8"), "uploaded_file_row_level_audit.csv", "text/csv", key="download_uploaded_row_audit")
         except Exception as e:
             st.error("Audit failed.")
             st.exception(e)
 
-with feature_tab:
-    show_feature_deep_dive(bundle)
-    show_static_feature_report()
+with overview_tab:
+    meta = bundle.get("meta", {})
+    cfg = meta.get("train_config", {})
+    train_rows, feature_count = overview_stats(bundle)
+    st.subheader("Model status")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Training rows", f"{int(train_rows):,}" if isinstance(train_rows, (int, float)) else str(train_rows))
+    c2.metric("Input features", f"{int(feature_count):,}" if isinstance(feature_count, (int, float)) else str(feature_count))
+    c3.metric("Allocate threshold", meta.get("allocate_threshold", cfg.get("allocate_threshold", "—")))
+    c4.metric("Review threshold", meta.get("review_threshold", cfg.get("review_threshold", "—")))
+    st.markdown("#### Model paths")
+    st.write("Allocate model, Review model, Site 802 specialist, and AK specialist are loaded from the packaged artifacts.")
+    with st.expander("Training configuration", expanded=False):
+        st.json(cfg)
+    with st.expander("Approved input columns", expanded=False):
+        st.write(core.ALLOWED_FEATURES)
+
+with features_tab:
+    show_feature_review(bundle)
 
 with files_tab:
-    st.subheader("Flat package contents")
+    st.subheader("Included files")
     rows = []
-    for p in sorted(APP_DIR.iterdir()):
+    for p in sorted(APP_DIR.rglob("*")):
         if p.is_file():
-            rows.append({"file": p.name, "size_mb": round(p.stat().st_size / (1024 * 1024), 3)})
+            rows.append({"file": str(p.relative_to(APP_DIR)), "size_mb": round(p.stat().st_size / (1024 * 1024), 3)})
     st.dataframe(pd.DataFrame(rows), use_container_width=True)
