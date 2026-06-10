@@ -52,7 +52,7 @@ def apply_site802_specialist(df, base_audit, model):
     if model is None: 
         out['Site 802 Specialist Applied']=0
         return out
-    pred=_num(out['Predicted Final Alloc'])
+    pred=_num(out['Predicted Final Alloc']).copy()
     site=_site802(df); alloc,review=_segments(df)
     for seg,mask in [('allocate',site&alloc),('review',site&review)]:
         sm=model.get('segments',{}).get(seg,{})

@@ -37,7 +37,7 @@ def apply_ak_specialist(df, base_audit, model):
         return out
     man=model.get('manifest',{})
     segs=man.get('segments',{})
-    pred=_num(out['Predicted Final Alloc'])
+    pred=_num(out['Predicted Final Alloc']).copy()
     conf=_num(out.get('Allocation Confidence', pd.Series([0]*len(df))))
     ak=_ak_site_mask(df); alloc, review=_segments(df)
     flm=np.maximum(_num(df['FLM']),1.0); dc=np.maximum(_num(df['Dc Avail']),0.0)
