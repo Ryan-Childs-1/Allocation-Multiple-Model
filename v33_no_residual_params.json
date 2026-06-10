@@ -1,0 +1,11 @@
+{
+  "allocate_cap_margin_flm": 1.0,
+  "review_cap_margin_flm": 1.0,
+  "cap_sheet_need_mult": 1.0,
+  "cap_velocity_mult": 1.05,
+  "cap_consensus_max": 0.67,
+  "cap_min_base_over_rec_flms": 0.0,
+  "cap_reduce_to_rec_plus_flms": 1.0,
+  "rescue_enabled": false,
+  "review_keep_original": true
+}

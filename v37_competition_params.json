@@ -1,0 +1,13 @@
+{
+  "allocate_competition_clamp_enabled": true,
+  "allocate_zero_sparse_enabled": true,
+  "allocate_context_rescue_enabled": true,
+  "review_competition_rescue_enabled": false,
+  "clamp_sparse_score_min": 0.67,
+  "clamp_rec_trust_max": 0.42,
+  "clamp_over_ratio_min": 1.7,
+  "rescue_rec_trust_min": 0.62,
+  "rescue_need_percentile_min": 0.8,
+  "rescue_demand_share_min": 0.67,
+  "review_keep_original": true
+}

@@ -1,0 +1,18 @@
+{
+  "version": "v3.1_enhanced",
+  "artifact_layout": "compact_artifacts",
+  "files": [
+    "model_config.json",
+    "allocate_model.npz",
+    "review_model.npz",
+    "residual_correction_model.json",
+    "training_history.json"
+  ],
+  "improvements": [
+    "larger trainer configuration",
+    "expanded demand/supply feature engineering",
+    "residual correction model",
+    "compact outputs"
+  ],
+  "production_note": "Holdout smoke test did not beat original v3; package includes comparison report."
+}

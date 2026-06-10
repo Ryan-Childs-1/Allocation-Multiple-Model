@@ -1,0 +1,9 @@
+{
+  "version": "v3.9_feature_pruned_ak",
+  "review_min_shortage_flms": 2.5,
+  "review_low_unit_rescue_max_units": 2.0,
+  "review_max_rec_trust": 1.0,
+  "review_max_class_line_dc_pressure": 1.0,
+  "review_remove_sparse_guardrail": false,
+  "notes": "Prunes weak low-unit AK Review rescues with less than 2.5 sheet-need FLMs while preserving larger, high-impact AK Review rescues and all successful AK Allocate rescues."
+}

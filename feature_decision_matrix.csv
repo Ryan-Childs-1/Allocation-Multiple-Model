@@ -1,0 +1,140 @@
+feature,family,decision,scope,rationale,replacement_or_action,evidence_note,ALL_corr_packs,ALL_abs_corr_packs,ALL_corr_positive,ALL_nonzero_rate,SITE802_corr_packs,SITE802_abs_corr_packs,SITE802_corr_positive,SITE802_nonzero_rate,site802_total_coef_importance
+Class Name hashed group,categorical hashed feature,KEEP,primary model,"Base NN first-layer usage shows strong utilization, especially Class/Line/Site groups.",,,,,,,,,,,0.0
+Dc Avail Bucket hashed group,categorical hashed feature,KEEP,primary model,Useful categorical structure; keep but cap dimensions to prevent overfitting.,,,,,,,,,,,0.0
+Flag hashed group,categorical hashed feature,KEEP,primary model,Useful categorical structure; keep but cap dimensions to prevent overfitting.,,,,,,,,,,,0.0
+Line Name hashed group,categorical hashed feature,KEEP,primary model,"Base NN first-layer usage shows strong utilization, especially Class/Line/Site groups.",,,,,,,,,,,0.0
+Rank hashed group,categorical hashed feature,KEEP,primary model,Useful categorical structure; keep but cap dimensions to prevent overfitting.,,,,,,,,,,,0.0
+Site hashed group,categorical hashed feature,KEEP,primary model,"Base NN first-layer usage shows strong utilization, especially Class/Line/Site groups.",,,,,,,,,,,0.0
+Class Name,categorical identity,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,,,,,,,,,0.0
+Line Name,categorical identity,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,,,,,,,,,0.0
+Dc Avail,dc availability,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.2078,0.2078,0.2784,1.0,0.0683,0.0683,0.0534,1.0,0.0
+D30,demand/sales,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1841,0.1841,0.087,0.5871,0.1957,0.1957,0.0239,0.4778,0.0
+D60,demand/sales,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1715,0.1715,0.0956,0.7071,0.1944,0.1944,0.0147,0.6404,0.0
+L30,demand/sales,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1177,0.1177,0.0665,0.7174,0.0951,0.0951,0.0064,0.4581,0.0
+LW,demand/sales,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.211,0.211,0.161,0.5403,0.0451,0.0451,0.0254,0.2709,0.0
+TTM,demand/sales,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1251,0.1251,0.0897,0.9538,0.1261,0.1261,0.0156,0.9458,0.0
+Cost,original sheet,KEEP,primary model,"Approved original field. Keep, but use log/cost interactions rather than raw cost dominance.",,,-0.0185,0.0185,-0.0542,1.0,0.086,0.086,0.1124,1.0,0.0
+FLM,original sheet,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,-0.0169,0.0169,0.1465,0.962,-0.0175,0.0175,0.0988,0.9951,0.0
+MIL,original sheet,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,-0.0887,0.0887,-0.1297,0.9714,0.0315,0.0315,-0.0775,0.798,0.0
+Alloc. Rec.,recommendation/demand,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1587,0.1587,0.0916,1.0,0.0868,0.0868,-0.0195,1.0,0.0
+Proj. Demand,recommendation/demand,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,0.1948,0.1948,0.1249,0.8243,0.132,0.132,0.0187,0.8079,0.0
+Flag,router,KEEP,primary model,Keep as router/segment indicator; do not let it overpower actual demand/supply features.,,,,,,,,,,,0.0
+Site,site/store identity,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,,,,,,,,,0.0
+Rank,store ranking,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,,,,,,,,,0.0
+Supply,supply,KEEP,primary model,Approved original worksheet field; keep as core model input.,,,-0.0333,0.0333,-0.084,0.8711,0.0483,0.0483,-0.0872,0.4828,0.0
+avg_demand,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+d30_gap,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+d30_to_d60,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+d60_gap,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+dc_flms,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,0.3504,0.3504,0.3179,1.0,0.16,0.16,0.0366,1.0,0.0546
+dc_flms_capped,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+demand_pressure,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+has_alloc_rec,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+has_dc_avail,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+l30_to_d30,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+lw_month_to_l30,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+max_demand,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+mil_gap,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+proj_gap,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+rank_score,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,0.0024,0.0024,-0.035,1.0,,,,,0.0
+rec_flms,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,0.2042,0.2042,-0.0291,1.0,0.2038,0.2038,-0.0193,1.0,0.1012
+rec_minus_pressure,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+supply_to_d30,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,-0.1166,0.1166,-0.1428,0.8711,-0.0791,0.0791,-0.1252,0.4828,0.0
+supply_to_d60,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+supply_to_proj,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,-0.3189,0.3189,-0.4053,0.8711,-0.1098,0.1098,-0.1699,0.4828,0.0
+ttm_monthly,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+weak_demand,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,0.0273,0.0273,-0.0442,0.046,-0.0893,0.0893,-0.135,0.0542,0.0
+zero_supply,v3 base engineered,KEEP,primary model,Original v3 engineered feature; retained unless duplicated by a stronger v3.3 feature.,Keep but de-duplicate if a same-purpose v3.3 feature exists.,,,,,,,,,,0.0
+alloc_rec,v3.3/v3.4 enhanced,KEEP,primary model,"Original Alloc. Rec., repeated; keep.",,,0.1587,0.1587,0.0916,1.0,0.0868,0.0868,-0.0195,1.0,0.0
+cost_log1p,v3.3/v3.4 enhanced,KEEP,primary model,Better than raw cost for cost severity.,,,-0.0443,0.0443,-0.1855,1.0,0.1395,0.1395,0.0586,1.0,0.08879
+dc_after_rec,v3.3/v3.4 enhanced,KEEP,primary model,Useful remaining availability after recommendation.,,,0.2065,0.2065,0.2781,0.949,0.0662,0.0662,0.054,0.9704,0.0
+dc_after_rec_flms,v3.3/v3.4 enhanced,KEEP,primary model,Strong DC signal after recommended allocation.,,,0.348,0.348,0.3186,0.949,0.1534,0.1534,0.0373,0.9704,0.0
+dc_avail,v3.3/v3.4 enhanced,KEEP,primary model,"Original DC Avail, repeated; keep.",,,0.2078,0.2078,0.2784,1.0,0.0683,0.0683,0.0534,1.0,0.0727
+dc_raw_1001_2000,v3.3/v3.4 enhanced,KEEP,primary model,Useful high availability bucket.,,,0.1395,0.1395,0.2239,0.0716,0.0257,0.0257,0.0405,0.064,0.02314
+dc_raw_101_300,v3.3/v3.4 enhanced,KEEP,primary model,Useful mid DC bucket.,,,0.1523,0.1523,0.21,0.2441,-0.0182,0.0182,0.1196,0.2365,0.03944
+dc_raw_1_25,v3.3/v3.4 enhanced,KEEP,primary model,Strong negative signal; tight DC availability bucket.,,,-0.4101,0.4101,-0.5385,0.2976,-0.1417,0.1417,-0.1475,0.2808,0.04013
+dc_raw_26_50,v3.3/v3.4 enhanced,KEEP,primary model,Useful tight/mid-low DC bucket.,,,-0.1153,0.1153,-0.1354,0.0751,-0.0587,0.0587,-0.0283,0.1182,0.05321
+dc_raw_301_600,v3.3/v3.4 enhanced,KEEP,primary model,Useful positive availability bucket.,,,0.1733,0.1733,0.183,0.1145,0.1974,0.1974,0.1225,0.0985,0.1031
+dc_raw_601_1000,v3.3/v3.4 enhanced,KEEP,primary model,Useful positive availability bucket.,,,0.1612,0.1612,0.1648,0.056,0.2663,0.2663,0.0684,0.0542,0.01852
+dc_raw_empty,v3.3/v3.4 enhanced,KEEP,primary model,Raw DC bucket requested; important guardrail.,,,,,,,,,,,0.0
+dc_x_rank,v3.3/v3.4 enhanced,KEEP,primary model,Useful DC availability prioritized by rank.,,,0.3372,0.3372,0.2915,1.0,0.16,0.16,0.0366,1.0,0.0
+demand_above_supply_share,v3.3/v3.4 enhanced,KEEP,primary model,One of strongest univariate features; measures how many demand signals exceed current supply.,,,0.3726,0.3726,0.4648,0.6359,0.313,0.313,0.4069,0.7783,0.0
+demand_consensus,v3.3/v3.4 enhanced,KEEP,primary model,Strong indicator of whether multiple sales/demand signals agree.,,,0.2341,0.2341,0.3551,0.954,0.2737,0.2737,0.2889,0.9458,0.0437
+flm,v3.3/v3.4 enhanced,KEEP,primary model,"Original FLM, repeated for postprocessor/model; keep.",,,-0.0084,0.0084,0.1517,1.0,-0.0157,0.0157,0.1009,1.0,0.08452
+has_alloc_rec_signal,v3.3/v3.4 enhanced,KEEP,primary model,Simple availability of recommendation.,,,,,,,,,,,0.0
+has_proj_demand,v3.3/v3.4 enhanced,KEEP,primary model,Simple availability of projection.,,,0.1956,0.1956,0.3042,0.8243,0.1351,0.1351,0.1582,0.8079,0.0
+high_conf_demand_share,v3.3/v3.4 enhanced,KEEP,primary model,Strong positive-allocation signal; helps avoid single weak-signal allocations.,,,0.357,0.357,0.4734,0.6671,0.3099,0.3099,0.3802,0.7241,0.10921
+mean_demand_signal,v3.3/v3.4 enhanced,KEEP,primary model,Adds stable middle demand signal distinct from max demand.,,,0.1945,0.1945,0.1245,0.954,0.1314,0.1314,0.0185,0.9458,0.0
+need_above_rec,v3.3/v3.4 enhanced,KEEP,primary model,Simple interpretable rescue/undercall feature.,,,0.0037,0.0037,0.0111,0.0001,,,,,0.0
+overstock_units,v3.3/v3.4 enhanced,KEEP,primary model,Useful suppressor for over-allocation.,,,-0.0903,0.0903,-0.1303,0.6375,-0.0809,0.0809,-0.1295,0.3645,0.0
+positive_sheet_signal,v3.3/v3.4 enhanced,KEEP,primary model,Useful guardrail; avoid allocating with no support.,,,-0.0273,0.0273,0.0442,0.954,0.0893,0.0893,0.135,0.9458,0.0
+post_rec_to_proj,v3.3/v3.4 enhanced,KEEP,primary model,Oversupply risk specifically against Proj. Demand.,,,-0.2475,0.2475,-0.3227,1.0,-0.0842,0.0842,-0.1207,1.0,0.0
+post_rec_to_sheet_need,v3.3/v3.4 enhanced,KEEP,primary model,Useful oversupply risk based on original recommendation and demand.,,,-0.2531,0.2531,-0.3315,1.0,-0.0771,0.0771,-0.1104,1.0,0.0283
+pressure_x_cost,v3.3/v3.4 enhanced,KEEP,primary model,Useful severity-weighted shortage; regularize.,,,0.3391,0.3391,0.1217,0.6359,0.3082,0.3082,0.0393,0.7783,0.0
+pressure_x_rank,v3.3/v3.4 enhanced,KEEP,primary model,Strongest univariate pack feature in audit; keep.,,,0.4314,0.4314,0.1608,0.6359,0.2306,0.2306,0.0227,0.7783,0.0
+proj_exceeds_rec_1flm,v3.3/v3.4 enhanced,KEEP,primary model,Interpretable rescue/underrecommendation signal.,,,0.1936,0.1936,0.1729,0.2656,0.1423,0.1423,-0.0078,0.1478,0.0
+proj_flms,v3.3/v3.4 enhanced,KEEP,primary model,Projected demand in FLMs; strong and interpretable.,,,0.2912,0.2912,0.088,0.8243,0.2123,0.2123,-0.0085,0.8079,0.06593
+proj_gap_flms,v3.3/v3.4 enhanced,KEEP,primary model,One of strongest features; keep.,,,0.3785,0.3785,0.27,0.9096,0.2207,0.2207,0.0367,0.8374,0.0
+proj_gap_units,v3.3/v3.4 enhanced,KEEP,primary model,Direct projected demand shortage.,,,0.2015,0.2015,0.21,0.9096,0.141,0.141,0.0642,0.8374,0.0
+proj_minus_rec_flms,v3.3/v3.4 enhanced,KEEP,primary model,Captures under-recommendation relative to projection.,,,0.227,0.227,0.131,0.8968,0.1279,0.1279,0.0147,0.8818,0.0
+proj_rec_agreement,v3.3/v3.4 enhanced,KEEP,primary model,Good agreement score; keep clipped 0-1.,,,0.1841,0.1841,0.2606,0.8243,0.2526,0.2526,0.3779,0.8079,0.12889
+proj_supported_by_rec,v3.3/v3.4 enhanced,KEEP,primary model,Clean agreement flag between projection and recommendation.,,,-0.2142,0.2142,-0.262,0.5409,-0.1144,0.1144,-0.0175,0.7882,0.0
+rec_above_need,v3.3/v3.4 enhanced,KEEP,primary model,Simple interpretable suppression feature.,,,0.2535,0.2535,0.0169,0.3608,0.1139,0.1139,-0.0215,0.468,0.0
+rec_exceeds_proj_1flm,v3.3/v3.4 enhanced,KEEP,primary model,Interpretable suppressor for excessive recommendation.,,,-0.0652,0.0652,-0.1565,0.1225,-0.0576,0.0576,-0.1299,0.2414,0.0
+rec_minus_need_flms,v3.3/v3.4 enhanced,KEEP,primary model,Good signal for when Alloc. Rec. exceeds need.,,,0.147,0.147,-0.0804,1.0,0.2048,0.2048,-0.046,1.0,0.0
+rec_minus_proj,v3.3/v3.4 enhanced,KEEP,primary model,Direct gap between recommendation and projection.,,,-0.1476,0.1476,-0.1014,0.8968,-0.0744,0.0744,-0.0558,0.8818,0.0
+rec_minus_proj_flms,v3.3/v3.4 enhanced,KEEP,primary model,Pack-normalized recommendation/projection disagreement.,,,-0.227,0.227,-0.131,0.8968,-0.1279,0.1279,-0.0147,0.8818,0.07887
+rec_to_need,v3.3/v3.4 enhanced,KEEP,primary model,Useful but should be clipped to avoid division blowups.,,,0.0156,0.0156,-0.0185,1.0,-0.0609,0.0609,-0.0899,1.0,0.0
+rec_x_rank,v3.3/v3.4 enhanced,KEEP,primary model,Useful interaction of recommendation and store rank.,,,0.2189,0.2189,-0.0329,1.0,0.2038,0.2038,-0.0193,1.0,0.0
+recent_support,v3.3/v3.4 enhanced,KEEP,primary model,Simple robust binary support from L30/LW/D30.,,,0.2818,0.2818,0.4027,0.8123,0.323,0.323,0.3369,0.7044,0.0
+sheet_need,v3.3/v3.4 enhanced,KEEP,primary model,Strong business feature: max of approved sheet demand signals; useful for caps and shortage logic.,,,0.2155,0.2155,0.1349,0.954,0.1451,0.1451,0.0271,0.9458,0.08253
+short_term_acceleration,v3.3/v3.4 enhanced,KEEP,primary model,Keeps acceleration in a consolidated form.,,,0.0798,0.0798,0.0813,0.8531,-0.0949,0.0949,0.0024,0.803,0.0
+shortage_flms,v3.3/v3.4 enhanced,KEEP,primary model,Pack-normalized shortage.,,,0.2441,0.2441,0.0901,0.3424,0.1794,0.1794,0.0181,0.5862,0.20076
+shortage_sheet_flms,v3.3/v3.4 enhanced,KEEP,primary model,One of strongest pack-level predictors.,,,0.4169,0.4169,0.1758,0.6359,0.2306,0.2306,0.0227,0.7783,0.0
+shortage_sheet_units,v3.3/v3.4 enhanced,KEEP,primary model,Strong shortage amount from sheet need.,,,0.3308,0.3308,0.2514,0.6359,0.1485,0.1485,0.0532,0.7783,0.0
+shortage_units,v3.3/v3.4 enhanced,KEEP,primary model,Useful amount feature.,,,0.2307,0.2307,0.1699,0.3424,0.1076,0.1076,0.0379,0.5862,0.15607
+stable_support,v3.3/v3.4 enhanced,KEEP,primary model,Stable support from D60/TTM/Proj Demand.,,,0.1295,0.1295,0.2294,0.954,0.141,0.141,0.1533,0.9458,0.0
+supply,v3.3/v3.4 enhanced,KEEP,primary model,"Original Supply, repeated; keep.",,,-0.0333,0.0333,-0.084,0.8711,0.0483,0.0483,-0.0872,0.4828,0.01713
+supply_gap_d30,v3.3/v3.4 enhanced,KEEP,primary model,Original demand/supply gap.,,,0.1011,0.1011,0.1229,0.843,0.2381,0.2381,0.1147,0.601,0.0
+supply_gap_d60_month,v3.3/v3.4 enhanced,KEEP,primary model,Original demand/supply gap with D60 normalized.,,,0.0878,0.0878,0.1204,0.9026,0.2131,0.2131,0.1408,0.7241,0.0
+supply_gap_proj,v3.3/v3.4 enhanced,KEEP,primary model,Direct projection shortage.,,,0.2015,0.2015,0.21,0.9096,0.141,0.141,0.0642,0.8374,0.0
+supply_gap_sheet_need,v3.3/v3.4 enhanced,KEEP,primary model,Most directly interpretable shortage against sheet need.,,,0.2292,0.2292,0.2235,0.9348,0.158,0.158,0.074,0.9212,0.0
+supply_gap_velocity,v3.3/v3.4 enhanced,KEEP,primary model,Useful shortage feature based on weighted demand.,,,0.121,0.121,0.1517,0.9799,0.1307,0.1307,0.0971,0.9507,0.0
+supply_to_d60_month,v3.3/v3.4 enhanced,KEEP,primary model,Core supply/demand ratio.,,,-0.1149,0.1149,-0.1435,0.8711,-0.0825,0.0825,-0.1242,0.4828,0.0
+supply_to_sheet_need,v3.3/v3.4 enhanced,KEEP,primary model,Strong negative relationship with allocation; keep clipped.,,,-0.3323,0.3323,-0.4249,0.8711,-0.1084,0.1084,-0.1679,0.4828,0.05733
+supply_to_weighted_velocity,v3.3/v3.4 enhanced,KEEP,primary model,Useful ratio but should be clipped.,,,-0.2656,0.2656,-0.3273,0.8711,-0.085,0.085,-0.133,0.4828,0.0
+trend_d30_vs_d60_month,v3.3/v3.4 enhanced,KEEP,primary model,Captures 30-day versus 60-day trend.,,,0.1081,0.1081,0.0136,0.6311,0.1613,0.1613,0.0344,0.5862,0.0
+trend_l30_vs_d30,v3.3/v3.4 enhanced,KEEP,primary model,Captures recent acceleration/slowdown.,,,-0.0253,0.0253,0.001,0.7251,-0.089,0.089,-0.0196,0.67,0.0
+trend_lw_month_vs_l30,v3.3/v3.4 enhanced,KEEP,primary model,Captures very recent last-week signal versus monthly sales.,,,0.2395,0.2395,0.2152,0.7176,-0.1843,0.1843,0.0522,0.4581,0.0
+weighted_velocity,v3.3/v3.4 enhanced,KEEP,primary model,Core demand blend; directly addresses L30/D30/D60/LW/TTM feature request and has positive pack correlation.,,,0.1934,0.1934,0.1207,0.954,0.1318,0.1318,0.0176,0.9458,0.07834
+base_units,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.08463
+d30,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.16924
+d60_month,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.11817
+intercept,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.34262
+l30,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.19913
+lw_month,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.18615
+proj_units,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.05709
+rec_units,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.12222
+ttm_month,site802 specialist,CONDITIONAL,site802 specialist only,Specialist feature not used in primary model; retain only if regularized and validated for Site 802.,,,,,,,,,,,0.10097
+rec_cost_value,v3 base engineered,CONDITIONAL,primary model,"Cost interaction is useful for business severity, but should be regularized so cost does not override demand.",Keep with scaling/log transform and lower regularization weight.,,,,,,,,,,0.0
+supply_cost_value,v3 base engineered,CONDITIONAL,primary model,"Cost interaction is useful for business severity, but should be regularized so cost does not override demand.",Keep with scaling/log transform and lower regularization weight.,,,,,,,,,,0.0
+dc_raw_2000_plus,v3.3/v3.4 enhanced,CONDITIONAL,primary model,"Sparse; keep if enough history, otherwise merge with 1001+.",,,0.0355,0.0355,0.059,0.0178,-0.0429,0.0429,-0.0435,0.0345,0.05151
+dc_raw_51_100,v3.3/v3.4 enhanced,CONDITIONAL,primary model,Weakest raw bucket; keep only as part of full ordered bucket set or merge with 26-100.,,,0.0595,0.0595,0.0913,0.1233,-0.0858,0.0858,-0.0927,0.1133,0.04676
+post_rec_to_velocity,v3.3/v3.4 enhanced,CONDITIONAL,primary model,"Useful oversupply indicator, but redundant with post_rec_to_sheet_need.",,,-0.2265,0.2265,-0.2846,1.0,-0.086,0.086,-0.1262,1.0,0.0
+proj_to_rec,v3.3/v3.4 enhanced,CONDITIONAL,primary model,Useful but ratio can be unstable when rec is small; keep clipped.,,,0.1058,0.1058,0.163,0.8243,-0.0078,0.0078,-0.0359,0.8079,0.0
+rec_to_proj,v3.3/v3.4 enhanced,CONDITIONAL,primary model,Useful but ratio can be unstable when projection is small; keep clipped.,,,-0.1172,0.1172,-0.1594,1.0,-0.0663,0.0663,-0.093,1.0,0.0
+std_demand_signal,v3.3/v3.4 enhanced,CONDITIONAL,primary model,"Useful as disagreement/volatility signal, but can be noisy; keep only if validation shows lift.",,,0.2079,0.2079,0.1244,0.954,0.1617,0.1617,0.0316,0.9458,0.0
+supply_gap_l30,v3.3/v3.4 enhanced,CONDITIONAL,primary model,Useful but can be noisy; keep only as part of regularized demand family.,,,0.1021,0.1021,0.138,0.8273,0.084,0.084,0.0569,0.6798,0.0
+ttm_vs_recent,v3.3/v3.4 enhanced,CONDITIONAL,primary model,"May help seasonality/stale history, but should be regularized because TTM can lag current demand.",,,-0.1454,0.1454,-0.0385,0.9187,-0.1633,0.1633,-0.0129,0.9113,0.0
+woc_proxy,v3.3/v3.4 enhanced,CONDITIONAL,primary model,Potentially useful but denominator is unstable for low sales; keep only clipped/winsorized or remove if overfitting.,,,-0.2663,0.2663,-0.3382,0.8711,-0.0804,0.0804,-0.1358,0.4828,0.0
+base_confidence,v3.3/v3.4 enhanced,REMOVE,site802/meta model only,Base-model confidence should not be part of primary retraining; only optional stacked specialist input.,,,,,,,,,,,0.28177
+base_flms,v3.3/v3.4 enhanced,REMOVE,site802/meta model only,Base-model output leakage/meta feature. Do not use in primary retraining; only allowed in optional specialist stacked models.,,,,,,,,,,,0.2299
+base_pred_units,v3.3/v3.4 enhanced,REMOVE,site802/meta model only,Base-model output should not become a primary feature; it can propagate old model mistakes.,,,,,,,,,,,0.0
+base_to_rec,v3.3/v3.4 enhanced,REMOVE,site802/meta model only,Base-prediction-derived and redundant with model output.,,,,,,,,,,,0.0
+base_x_rank,v3.3/v3.4 enhanced,REMOVE,site802/meta model only,Base-prediction-derived interaction; remove from primary model.,,,,,,,,,,,0.0
+max_demand_signal,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Duplicate of sheet_need/max_demand; creates redundant max features.,,,0.2155,0.2155,0.1349,0.954,0.1451,0.1451,0.0271,0.9458,0.08253
+median_demand_signal,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Too redundant with mean demand and weighted velocity; weaker business interpretability.,,,0.1719,0.1719,0.1058,0.8207,0.1077,0.1077,0.0042,0.7635,0.0
+post_base_to_sheet_need,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Base-prediction-derived feature; remove from primary model to avoid chasing old model behavior.,,,-0.3323,0.3323,-0.4249,0.8711,-0.1084,0.1084,-0.1679,0.4828,0.20093
+post_base_to_velocity,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Base-prediction-derived feature; caused overly conservative postprocessing. Remove from retrained primary model.,,,-0.2656,0.2656,-0.3273,0.8711,-0.085,0.085,-0.133,0.4828,0.0
+proj_to_dc,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Unstable cross-scale ratio; weaker than proj_gap_flms and dc buckets.,,,-0.1135,0.1135,-0.1485,0.8243,-0.03,0.03,-0.0424,0.8079,0.0
+rec_to_dc,v3.3/v3.4 enhanced,REMOVE,remove from primary model,Unstable cross-scale ratio; weaker than dc_after_rec_flms.,,,-0.1322,0.1322,-0.1677,1.0,-0.0369,0.0369,-0.0506,1.0,0.0

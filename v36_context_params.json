@@ -1,0 +1,13 @@
+{
+  "allocate_extra_weak_single_flm_clamp": true,
+  "weak_single_flm_confidence_max": 0.34,
+  "weak_single_flm_need_share_max": 0.17,
+  "weak_single_flm_over_ratio_min": 1.55,
+  "weak_single_flm_rec_excess_min": 2.5,
+  "allocate_strong_rescue_enabled": true,
+  "allocate_rescue_need_share_min": 0.34,
+  "allocate_rescue_shortage_flms_min": 2.0,
+  "allocate_rescue_confidence_min": 0.34,
+  "review_feature_rescue_enabled": false,
+  "review_keep_original": true
+}
