@@ -20,13 +20,18 @@ REPORTS = APP_DIR
 AK_SITES = {"248", "159", "212", "145", "121"}
 
 st.set_page_config(
-    page_title="Allocation Split Expert v3.9 Feature-Pruned AK + Site 802",
+    page_title="Allocation Multiple Model",
     layout="wide",
 )
-st.title("Allocation Split Expert v3.9 Feature-Pruned AK + Site 802")
-st.caption(
-    "Flat Streamlit app for the v3.9 feature-pruned allocation model: original v3 split models, "
-    "Site 802 specialist, AK specialist, competition-aware/context features, and no residual correction."
+st.title("Allocation Multiple Model")
+st.markdown(
+    """
+    <div style="padding: 0.85rem 1rem; border: 1px solid rgba(128,128,128,0.25); border-radius: 0.75rem; margin-bottom: 1rem;">
+        <strong>Upload an allocation workbook, generate Final Alloc. predictions, and audit results when an existing Final Alloc. column is present.</strong>
+        <div style="opacity: 0.75; margin-top: 0.25rem;">Use the tabs below to predict, audit, review model details, inspect features, or confirm packaged files.</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
@@ -479,19 +484,19 @@ except Exception as e:
     st.stop()
 
 with st.sidebar:
-    st.header("v3.9 model")
-    st.write("Flat artifact layout")
-    st.code("model_config.json\nallocate_model.npz\nreview_model.npz\nsite802_specialist_model.npz\nak_specialist_model.npz")
+    st.header("Settings")
     drop_non_model = st.checkbox("Only process Allocate and Review rows", value=True)
-    st.write("Site 802 specialist loaded:", bundle.get("site802_model") is not None)
-    st.write("AK specialist loaded:", bundle.get("ak_specialist_model") is not None)
+    st.divider()
+    st.caption("Model status")
+    st.write("Site 802 specialist:", "Loaded" if bundle.get("site802_model") is not None else "Missing")
+    st.write("AK specialist:", "Loaded" if bundle.get("ak_specialist_model") is not None else "Missing")
 
-model_tab, predict_tab, audit_tab, feature_tab, files_tab = st.tabs([
+predict_tab, audit_tab, model_tab, feature_tab, files_tab = st.tabs([
+    "Predict",
+    "Audit",
     "Model overview",
-    "Predict allocation",
-    "Audit uploaded file",
-    "Feature deep dive",
-    "Artifact files",
+    "Features",
+    "Files",
 ])
 
 with model_tab:
@@ -499,40 +504,31 @@ with model_tab:
     cfg = meta.get("train_config", {})
     summary = _read_json(ART / "model_summary.json")
     train_rows_display, feature_count = overview_stats(bundle)
-    st.subheader("What this model does")
-    st.markdown(
-        """
-This is the **v3.9 Feature-Pruned AK + Site 802** app. It uses separate **Allocate** and **Review** two-stage models, then applies feature-pruned business logic and specialist layers.
 
-The model only uses the approved worksheet fields: `Class Name`, `Line Name`, `Site`, `MIL`, `FLM`, `Cost`, `L30`, `D30`, `D60`, `LW`, `TTM`, `Supply`, `Dc Avail`, `Rank`, `Proj. Demand`, `Alloc. Rec.`, and `Flag`.
-
-The deployed stack includes:
-
-- Original v3 split Allocate/Review classifiers and FLM regressors
-- v3.3 raw `Dc Avail` buckets and `Proj. Demand` / `Alloc. Rec.` feature expansion
-- v3.5 feature-pruned no-residual layer
-- v3.6 context features
-- v3.7 competition-aware workbook/class-line features
-- Site 802 specialist model
-- AK-store specialist model for sites `248`, `159`, `212`, `145`, and `121`
-- v3.9 AK Review feature pruning
-"""
-    )
+    st.markdown("### Model summary")
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Training / audit rows", str(train_rows_display))
     c2.metric("Model input features", f"{int(feature_count):,}" if isinstance(feature_count, (int, float)) else str(feature_count))
     c3.metric("Allocate threshold", meta.get("allocate_threshold", cfg.get("allocate_threshold", "—")))
     c4.metric("Review threshold", meta.get("review_threshold", cfg.get("review_threshold", "—")))
-    st.info(
-        "If older compact artifacts do not store training-row counts, this app shows the packaged v3.9 audit row count instead of displaying zero. "
-        "Feature count is read directly from the loaded neural-network input dimension."
-    )
+
+    st.markdown("### Model paths")
+    p1, p2, p3, p4 = st.columns(4)
+    p1.info("Allocate model")
+    p2.info("Review model")
+    p3.info("Site 802 specialist")
+    p4.info("AK specialist")
+
+    st.markdown("### Approved worksheet inputs")
+    st.write(", ".join(core.ALLOWED_FEATURES))
+
     with st.expander("Training configuration", expanded=False):
         st.json(cfg)
-    with st.expander("Approved input columns", expanded=False):
-        st.write(core.ALLOWED_FEATURES)
+    with st.expander("Packaged model summary", expanded=False):
+        st.json(summary if summary else {"status": "model_summary.json not found"})
 
 with predict_tab:
+    st.markdown("### Predict Final Alloc.")
     up = st.file_uploader("Upload allocation workbook or CSV", type=["xlsb", "xlsx", "xlsm", "xls", "csv"], key="predict_upload")
     if up:
         try:
@@ -595,7 +591,7 @@ with predict_tab:
             st.exception(e)
 
 with audit_tab:
-    st.subheader("Audit an uploaded file against existing Final Alloc values")
+    st.markdown("### Audit uploaded file")
     st.markdown(
         "Upload a workbook or CSV that already has data in `Final Alloc.`. The app will predict the file, compare predictions to the existing values, and calculate smoke-test-style accuracy by model path."
     )
@@ -676,7 +672,7 @@ with feature_tab:
     show_static_feature_report()
 
 with files_tab:
-    st.subheader("Flat package contents")
+    st.markdown("### Files")
     rows = []
     for p in sorted(APP_DIR.iterdir()):
         if p.is_file():
