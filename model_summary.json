@@ -1,18 +1,66 @@
 {
-  "version": "v3.1_enhanced",
-  "artifact_layout": "compact_artifacts",
-  "files": [
+  "rows": 19548,
+  "features": 381,
+  "allocate_rows": 9557,
+  "review_rows": 9991,
+  "allocate_threshold": 0.6,
+  "review_threshold": 0.45,
+  "updated_files": [
     "model_config.json",
     "allocate_model.npz",
     "review_model.npz",
-    "residual_correction_model.json",
-    "training_history.json"
+    "site802_specialist_model.npz",
+    "ak_specialist_model.npz",
+    "training_history.json",
+    "tuning_output.json",
+    "model_summary.json",
+    "feature_catalog.csv",
+    "model_report_package.zip"
   ],
-  "improvements": [
-    "larger trainer configuration",
-    "expanded demand/supply feature engineering",
-    "residual correction model",
-    "compact outputs"
-  ],
-  "production_note": "Holdout smoke test did not beat original v3; package includes comparison report."
+  "site802_manifest": {
+    "segments": {
+      "allocate": {
+        "enabled": true,
+        "rows": 448,
+        "threshold": 0.3,
+        "mae_on_added_rows": 1.8102678571428572
+      },
+      "review": {
+        "enabled": true,
+        "rows": 220,
+        "threshold": 0.35,
+        "mae_on_added_rows": 0.33181818181818185
+      }
+    }
+  },
+  "ak_manifest": {
+    "version": "v3.9_chatgpt_continued_ak_rules",
+    "ak_sites": [
+      "121",
+      "145",
+      "159",
+      "212",
+      "248"
+    ],
+    "segments": {
+      "allocate": {
+        "enabled": true,
+        "rows": 569,
+        "rescue_conf_min": 0.0,
+        "rescue_rec_flms_min": 0.0,
+        "rescue_high_conf_demand_share_min": 0.0,
+        "rescue_shortage_flms_min": 0.5,
+        "mae_on_added_rows": 0.9912126537785588
+      },
+      "review": {
+        "enabled": true,
+        "rows": 516,
+        "rescue_conf_min": 0.25,
+        "rescue_rec_flms_min": 0.0,
+        "rescue_high_conf_demand_share_min": 0.67,
+        "rescue_shortage_flms_min": 0.5,
+        "mae_on_added_rows": 0.6317829457364341
+      }
+    }
+  }
 }

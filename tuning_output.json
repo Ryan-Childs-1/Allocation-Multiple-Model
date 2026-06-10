@@ -1,0 +1,338 @@
+{
+  "created_at": "2026-06-10 02:21:45",
+  "continued_rows": 19548,
+  "segments": {
+    "allocate": {
+      "rows": 9557,
+      "best_threshold": 0.6,
+      "best_metrics": {
+        "threshold": 0.6,
+        "rows": 9557,
+        "mae_units": 0.5694255519514492,
+        "exact_rate": 0.8606257193680025,
+        "false_positives": 306,
+        "false_negatives": 242,
+        "unit_delta": -42.0,
+        "score": 1.1207855519514491
+      },
+      "metrics": [
+        {
+          "threshold": 0.32,
+          "rows": 9557,
+          "mae_units": 0.5994558962017369,
+          "exact_rate": 0.8590561891807053,
+          "false_positives": 500,
+          "false_negatives": 57,
+          "unit_delta": 2697.0,
+          "score": 1.372215896201737
+        },
+        {
+          "threshold": 0.34,
+          "rows": 9557,
+          "mae_units": 0.5979910013602595,
+          "exact_rate": 0.8599979072930836,
+          "false_positives": 488,
+          "false_negatives": 60,
+          "unit_delta": 2633.0,
+          "score": 1.3566310013602596
+        },
+        {
+          "threshold": 0.36,
+          "rows": 9557,
+          "mae_units": 0.6013393324264936,
+          "exact_rate": 0.8601025426389034,
+          "false_positives": 478,
+          "false_negatives": 69,
+          "unit_delta": 2495.0,
+          "score": 1.3479393324264937
+        },
+        {
+          "threshold": 0.38,
+          "rows": 9557,
+          "mae_units": 0.5886784555822957,
+          "exact_rate": 0.8611488960971015,
+          "false_positives": 462,
+          "false_negatives": 75,
+          "unit_delta": 2352.0,
+          "score": 1.3138384555822957
+        },
+        {
+          "threshold": 0.4,
+          "rows": 9557,
+          "mae_units": 0.5840745003662237,
+          "exact_rate": 0.8616720728262007,
+          "false_positives": 447,
+          "false_negatives": 85,
+          "unit_delta": 2230.0,
+          "score": 1.2944745003662237
+        },
+        {
+          "threshold": 0.42,
+          "rows": 9557,
+          "mae_units": 0.5851208538244219,
+          "exact_rate": 0.8612535314429214,
+          "false_positives": 438,
+          "false_negatives": 98,
+          "unit_delta": 2104.0,
+          "score": 1.289440853824422
+        },
+        {
+          "threshold": 0.44,
+          "rows": 9557,
+          "mae_units": 0.5738202364758815,
+          "exact_rate": 0.8627184262843989,
+          "false_positives": 418,
+          "false_negatives": 105,
+          "unit_delta": 1964.0,
+          "score": 1.2539402364758816
+        },
+        {
+          "threshold": 0.45999999999999996,
+          "rows": 9557,
+          "mae_units": 0.5649262320811971,
+          "exact_rate": 0.8635555090509575,
+          "false_positives": 403,
+          "false_negatives": 112,
+          "unit_delta": 1833.0,
+          "score": 1.226566232081197
+        },
+        {
+          "threshold": 0.48,
+          "rows": 9557,
+          "mae_units": 0.5656586795019357,
+          "exact_rate": 0.8631369676676781,
+          "false_positives": 395,
+          "false_negatives": 125,
+          "unit_delta": 1702.0,
+          "score": 1.2218186795019357
+        },
+        {
+          "threshold": 0.5,
+          "rows": 9557,
+          "mae_units": 0.5708904467929267,
+          "exact_rate": 0.8628230616302187,
+          "false_positives": 385,
+          "false_negatives": 138,
+          "unit_delta": 1536.0,
+          "score": 1.2167704467929266
+        },
+        {
+          "threshold": 0.52,
+          "rows": 9557,
+          "mae_units": 0.5504865543580622,
+          "exact_rate": 0.8627184262843989,
+          "false_positives": 367,
+          "false_negatives": 158,
+          "unit_delta": 993.0,
+          "score": 1.1549265543580622
+        },
+        {
+          "threshold": 0.54,
+          "rows": 9557,
+          "mae_units": 0.5540441561159359,
+          "exact_rate": 0.8628230616302187,
+          "false_positives": 349,
+          "false_negatives": 176,
+          "unit_delta": 701.0,
+          "score": 1.135124156115936
+        },
+        {
+          "threshold": 0.5599999999999999,
+          "rows": 9557,
+          "mae_units": 0.5570785811447106,
+          "exact_rate": 0.8622998849011196,
+          "false_positives": 337,
+          "false_negatives": 193,
+          "unit_delta": 484.0,
+          "score": 1.1257985811447107
+        },
+        {
+          "threshold": 0.58,
+          "rows": 9557,
+          "mae_units": 0.5669143036517735,
+          "exact_rate": 0.8613581667887412,
+          "false_positives": 323,
+          "false_negatives": 216,
+          "unit_delta": 238.0,
+          "score": 1.1249543036517737
+        },
+        {
+          "threshold": 0.6,
+          "rows": 9557,
+          "mae_units": 0.5694255519514492,
+          "exact_rate": 0.8606257193680025,
+          "false_positives": 306,
+          "false_negatives": 242,
+          "unit_delta": -42.0,
+          "score": 1.1207855519514491
+        }
+      ]
+    },
+    "review": {
+      "rows": 9991,
+      "best_threshold": 0.45,
+      "best_metrics": {
+        "threshold": 0.45,
+        "rows": 9991,
+        "mae_units": 0.3537183465118607,
+        "exact_rate": 0.8990091081973777,
+        "false_positives": 394,
+        "false_negatives": 359,
+        "unit_delta": 102.0,
+        "score": 1.1148783465118606
+      },
+      "metrics": [
+        {
+          "threshold": 0.45,
+          "rows": 9991,
+          "mae_units": 0.3537183465118607,
+          "exact_rate": 0.8990091081973777,
+          "false_positives": 394,
+          "false_negatives": 359,
+          "unit_delta": 102.0,
+          "score": 1.1148783465118606
+        },
+        {
+          "threshold": 0.4735714285714286,
+          "rows": 9991,
+          "mae_units": 0.35692122910619556,
+          "exact_rate": 0.8991091982784506,
+          "false_positives": 364,
+          "false_negatives": 389,
+          "unit_delta": -140.0,
+          "score": 1.1211212291061956
+        },
+        {
+          "threshold": 0.49714285714285716,
+          "rows": 9991,
+          "mae_units": 0.3537183465118607,
+          "exact_rate": 0.8997097387648884,
+          "false_positives": 334,
+          "false_negatives": 416,
+          "unit_delta": -366.0,
+          "score": 1.1329983465118607
+        },
+        {
+          "threshold": 0.5207142857142857,
+          "rows": 9991,
+          "mae_units": 0.3575217695926334,
+          "exact_rate": 0.8993093784405966,
+          "false_positives": 314,
+          "false_negatives": 441,
+          "unit_delta": -548.0,
+          "score": 1.1563617695926334
+        },
+        {
+          "threshold": 0.5442857142857143,
+          "rows": 9991,
+          "mae_units": 0.3706335702131919,
+          "exact_rate": 0.898008207386648,
+          "false_positives": 291,
+          "false_negatives": 482,
+          "unit_delta": -801.0,
+          "score": 1.2077135702131918
+        },
+        {
+          "threshold": 0.5678571428571428,
+          "rows": 9991,
+          "mae_units": 0.37924131718546694,
+          "exact_rate": 0.8970073065759183,
+          "false_positives": 275,
+          "false_negatives": 513,
+          "unit_delta": -1065.0,
+          "score": 1.252441317185467
+        },
+        {
+          "threshold": 0.5914285714285714,
+          "rows": 9991,
+          "mae_units": 0.38694825342808525,
+          "exact_rate": 0.8962065859273346,
+          "false_positives": 256,
+          "false_negatives": 540,
+          "unit_delta": -1266.0,
+          "score": 1.2842282534280853
+        },
+        {
+          "threshold": 0.615,
+          "rows": 9991,
+          "mae_units": 0.38384546091482336,
+          "exact_rate": 0.8969072164948454,
+          "false_positives": 230,
+          "false_negatives": 561,
+          "unit_delta": -1399.0,
+          "score": 1.2867654609148234
+        },
+        {
+          "threshold": 0.6385714285714286,
+          "rows": 9991,
+          "mae_units": 0.3948553698328496,
+          "exact_rate": 0.8955059553598238,
+          "false_positives": 209,
+          "false_negatives": 600,
+          "unit_delta": -1667.0,
+          "score": 1.3372153698328497
+        },
+        {
+          "threshold": 0.6621428571428571,
+          "rows": 9991,
+          "mae_units": 0.3955560004003603,
+          "exact_rate": 0.895005504954459,
+          "false_positives": 190,
+          "false_negatives": 628,
+          "unit_delta": -1852.0,
+          "score": 1.3617160004003603
+        },
+        {
+          "threshold": 0.6857142857142857,
+          "rows": 9991,
+          "mae_units": 0.39715744169752776,
+          "exact_rate": 0.895005504954459,
+          "false_positives": 163,
+          "false_negatives": 658,
+          "unit_delta": -2070.0,
+          "score": 1.383757441697528
+        },
+        {
+          "threshold": 0.7092857142857143,
+          "rows": 9991,
+          "mae_units": 0.405264738264438,
+          "exact_rate": 0.8937043339005104,
+          "false_positives": 147,
+          "false_negatives": 691,
+          "unit_delta": -2323.0,
+          "score": 1.429104738264438
+        },
+        {
+          "threshold": 0.7328571428571429,
+          "rows": 9991,
+          "mae_units": 0.40716644980482436,
+          "exact_rate": 0.8935041537383646,
+          "false_positives": 130,
+          "false_negatives": 713,
+          "unit_delta": -2534.0,
+          "score": 1.4528864498048244
+        },
+        {
+          "threshold": 0.7564285714285715,
+          "rows": 9991,
+          "mae_units": 0.4200780702632369,
+          "exact_rate": 0.8903012711440296,
+          "false_positives": 121,
+          "false_negatives": 759,
+          "unit_delta": -2757.0,
+          "score": 1.520638070263237
+        },
+        {
+          "threshold": 0.78,
+          "rows": 9991,
+          "mae_units": 0.431388249424482,
+          "exact_rate": 0.8875988389550595,
+          "false_positives": 106,
+          "false_negatives": 805,
+          "unit_delta": -3004.0,
+          "score": 1.5827082494244822
+        }
+      ]
+    }
+  }
+}

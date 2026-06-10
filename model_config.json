@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-06-07 17:52:31",
+  "created_at": "2026-06-10 02:21:47",
   "allowed_features": [
     "Class Name",
     "Line Name",
@@ -636,5 +636,16 @@
     "Kept FLM-normalized Dc Avail Bucket for backward compatibility and pack-size-aware learning.",
     "Added Proj. Demand and Alloc. Rec. interaction features including FLM-scaled gaps, rec-to-proj, proj-to-rec, post-rec supply ratios, and DC-after-rec signals.",
     "The deployed compact artifacts remain backward-compatible with the original v3 model width; the trainer will include the new feature columns when retrained."
-  ]
+  ],
+  "model_version": "v3.9_feature_pruned_ak_site802_continued_from_chatgpt_base",
+  "continued_training": {
+    "source": "provided project Daily Allocation workbooks",
+    "rows": 19548,
+    "features": 381,
+    "allocate_rows": 9557,
+    "review_rows": 9991,
+    "method": "frozen hidden layer continuation from ChatGPT-provided v3.9 model weights"
+  },
+  "allocate_threshold": 0.6,
+  "review_threshold": 0.45
 }

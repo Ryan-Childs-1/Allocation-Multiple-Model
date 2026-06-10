@@ -1,0 +1,382 @@
+feature_index,feature_name
+0,MIL
+1,FLM
+2,Cost
+3,L30
+4,D30
+5,D60
+6,LW
+7,TTM
+8,Supply
+9,Dc Avail
+10,Proj. Demand
+11,Alloc. Rec.
+12,max_demand
+13,avg_demand
+14,demand_pressure
+15,proj_gap
+16,d30_gap
+17,d60_gap
+18,mil_gap
+19,supply_to_d30
+20,supply_to_d60
+21,supply_to_proj
+22,l30_to_d30
+23,d30_to_d60
+24,lw_month_to_l30
+25,ttm_monthly
+26,rec_flms
+27,rec_minus_pressure
+28,dc_flms
+29,dc_flms_capped
+30,rank_score
+31,rec_cost_value
+32,supply_cost_value
+33,weak_demand
+34,zero_supply
+35,has_alloc_rec
+36,has_dc_avail
+37,hash__Class Name__0
+38,hash__Class Name__1
+39,hash__Class Name__2
+40,hash__Class Name__3
+41,hash__Class Name__4
+42,hash__Class Name__5
+43,hash__Class Name__6
+44,hash__Class Name__7
+45,hash__Class Name__8
+46,hash__Class Name__9
+47,hash__Class Name__10
+48,hash__Class Name__11
+49,hash__Class Name__12
+50,hash__Class Name__13
+51,hash__Class Name__14
+52,hash__Class Name__15
+53,hash__Class Name__16
+54,hash__Class Name__17
+55,hash__Class Name__18
+56,hash__Class Name__19
+57,hash__Class Name__20
+58,hash__Class Name__21
+59,hash__Class Name__22
+60,hash__Class Name__23
+61,hash__Class Name__24
+62,hash__Class Name__25
+63,hash__Class Name__26
+64,hash__Class Name__27
+65,hash__Class Name__28
+66,hash__Class Name__29
+67,hash__Class Name__30
+68,hash__Class Name__31
+69,hash__Class Name__32
+70,hash__Class Name__33
+71,hash__Class Name__34
+72,hash__Class Name__35
+73,hash__Class Name__36
+74,hash__Class Name__37
+75,hash__Class Name__38
+76,hash__Class Name__39
+77,hash__Class Name__40
+78,hash__Class Name__41
+79,hash__Class Name__42
+80,hash__Class Name__43
+81,hash__Class Name__44
+82,hash__Class Name__45
+83,hash__Class Name__46
+84,hash__Class Name__47
+85,hash__Class Name__48
+86,hash__Class Name__49
+87,hash__Class Name__50
+88,hash__Class Name__51
+89,hash__Class Name__52
+90,hash__Class Name__53
+91,hash__Class Name__54
+92,hash__Class Name__55
+93,hash__Class Name__56
+94,hash__Class Name__57
+95,hash__Class Name__58
+96,hash__Class Name__59
+97,hash__Class Name__60
+98,hash__Class Name__61
+99,hash__Class Name__62
+100,hash__Class Name__63
+101,hash__Class Name__64
+102,hash__Class Name__65
+103,hash__Class Name__66
+104,hash__Class Name__67
+105,hash__Class Name__68
+106,hash__Class Name__69
+107,hash__Class Name__70
+108,hash__Class Name__71
+109,hash__Class Name__72
+110,hash__Class Name__73
+111,hash__Class Name__74
+112,hash__Class Name__75
+113,hash__Class Name__76
+114,hash__Class Name__77
+115,hash__Class Name__78
+116,hash__Class Name__79
+117,hash__Class Name__80
+118,hash__Class Name__81
+119,hash__Class Name__82
+120,hash__Class Name__83
+121,hash__Class Name__84
+122,hash__Class Name__85
+123,hash__Class Name__86
+124,hash__Class Name__87
+125,hash__Class Name__88
+126,hash__Class Name__89
+127,hash__Class Name__90
+128,hash__Class Name__91
+129,hash__Class Name__92
+130,hash__Class Name__93
+131,hash__Class Name__94
+132,hash__Class Name__95
+133,hash__Line Name__0
+134,hash__Line Name__1
+135,hash__Line Name__2
+136,hash__Line Name__3
+137,hash__Line Name__4
+138,hash__Line Name__5
+139,hash__Line Name__6
+140,hash__Line Name__7
+141,hash__Line Name__8
+142,hash__Line Name__9
+143,hash__Line Name__10
+144,hash__Line Name__11
+145,hash__Line Name__12
+146,hash__Line Name__13
+147,hash__Line Name__14
+148,hash__Line Name__15
+149,hash__Line Name__16
+150,hash__Line Name__17
+151,hash__Line Name__18
+152,hash__Line Name__19
+153,hash__Line Name__20
+154,hash__Line Name__21
+155,hash__Line Name__22
+156,hash__Line Name__23
+157,hash__Line Name__24
+158,hash__Line Name__25
+159,hash__Line Name__26
+160,hash__Line Name__27
+161,hash__Line Name__28
+162,hash__Line Name__29
+163,hash__Line Name__30
+164,hash__Line Name__31
+165,hash__Line Name__32
+166,hash__Line Name__33
+167,hash__Line Name__34
+168,hash__Line Name__35
+169,hash__Line Name__36
+170,hash__Line Name__37
+171,hash__Line Name__38
+172,hash__Line Name__39
+173,hash__Line Name__40
+174,hash__Line Name__41
+175,hash__Line Name__42
+176,hash__Line Name__43
+177,hash__Line Name__44
+178,hash__Line Name__45
+179,hash__Line Name__46
+180,hash__Line Name__47
+181,hash__Line Name__48
+182,hash__Line Name__49
+183,hash__Line Name__50
+184,hash__Line Name__51
+185,hash__Line Name__52
+186,hash__Line Name__53
+187,hash__Line Name__54
+188,hash__Line Name__55
+189,hash__Line Name__56
+190,hash__Line Name__57
+191,hash__Line Name__58
+192,hash__Line Name__59
+193,hash__Line Name__60
+194,hash__Line Name__61
+195,hash__Line Name__62
+196,hash__Line Name__63
+197,hash__Line Name__64
+198,hash__Line Name__65
+199,hash__Line Name__66
+200,hash__Line Name__67
+201,hash__Line Name__68
+202,hash__Line Name__69
+203,hash__Line Name__70
+204,hash__Line Name__71
+205,hash__Line Name__72
+206,hash__Line Name__73
+207,hash__Line Name__74
+208,hash__Line Name__75
+209,hash__Line Name__76
+210,hash__Line Name__77
+211,hash__Line Name__78
+212,hash__Line Name__79
+213,hash__Line Name__80
+214,hash__Line Name__81
+215,hash__Line Name__82
+216,hash__Line Name__83
+217,hash__Line Name__84
+218,hash__Line Name__85
+219,hash__Line Name__86
+220,hash__Line Name__87
+221,hash__Line Name__88
+222,hash__Line Name__89
+223,hash__Line Name__90
+224,hash__Line Name__91
+225,hash__Line Name__92
+226,hash__Line Name__93
+227,hash__Line Name__94
+228,hash__Line Name__95
+229,hash__Line Name__96
+230,hash__Line Name__97
+231,hash__Line Name__98
+232,hash__Line Name__99
+233,hash__Line Name__100
+234,hash__Line Name__101
+235,hash__Line Name__102
+236,hash__Line Name__103
+237,hash__Line Name__104
+238,hash__Line Name__105
+239,hash__Line Name__106
+240,hash__Line Name__107
+241,hash__Line Name__108
+242,hash__Line Name__109
+243,hash__Line Name__110
+244,hash__Line Name__111
+245,hash__Line Name__112
+246,hash__Line Name__113
+247,hash__Line Name__114
+248,hash__Line Name__115
+249,hash__Line Name__116
+250,hash__Line Name__117
+251,hash__Line Name__118
+252,hash__Line Name__119
+253,hash__Line Name__120
+254,hash__Line Name__121
+255,hash__Line Name__122
+256,hash__Line Name__123
+257,hash__Line Name__124
+258,hash__Line Name__125
+259,hash__Line Name__126
+260,hash__Line Name__127
+261,hash__Site__0
+262,hash__Site__1
+263,hash__Site__2
+264,hash__Site__3
+265,hash__Site__4
+266,hash__Site__5
+267,hash__Site__6
+268,hash__Site__7
+269,hash__Site__8
+270,hash__Site__9
+271,hash__Site__10
+272,hash__Site__11
+273,hash__Site__12
+274,hash__Site__13
+275,hash__Site__14
+276,hash__Site__15
+277,hash__Site__16
+278,hash__Site__17
+279,hash__Site__18
+280,hash__Site__19
+281,hash__Site__20
+282,hash__Site__21
+283,hash__Site__22
+284,hash__Site__23
+285,hash__Site__24
+286,hash__Site__25
+287,hash__Site__26
+288,hash__Site__27
+289,hash__Site__28
+290,hash__Site__29
+291,hash__Site__30
+292,hash__Site__31
+293,hash__Site__32
+294,hash__Site__33
+295,hash__Site__34
+296,hash__Site__35
+297,hash__Site__36
+298,hash__Site__37
+299,hash__Site__38
+300,hash__Site__39
+301,hash__Site__40
+302,hash__Site__41
+303,hash__Site__42
+304,hash__Site__43
+305,hash__Site__44
+306,hash__Site__45
+307,hash__Site__46
+308,hash__Site__47
+309,hash__Site__48
+310,hash__Site__49
+311,hash__Site__50
+312,hash__Site__51
+313,hash__Site__52
+314,hash__Site__53
+315,hash__Site__54
+316,hash__Site__55
+317,hash__Site__56
+318,hash__Site__57
+319,hash__Site__58
+320,hash__Site__59
+321,hash__Site__60
+322,hash__Site__61
+323,hash__Site__62
+324,hash__Site__63
+325,hash__Site__64
+326,hash__Site__65
+327,hash__Site__66
+328,hash__Site__67
+329,hash__Site__68
+330,hash__Site__69
+331,hash__Site__70
+332,hash__Site__71
+333,hash__Site__72
+334,hash__Site__73
+335,hash__Site__74
+336,hash__Site__75
+337,hash__Site__76
+338,hash__Site__77
+339,hash__Site__78
+340,hash__Site__79
+341,hash__Site__80
+342,hash__Site__81
+343,hash__Site__82
+344,hash__Site__83
+345,hash__Site__84
+346,hash__Site__85
+347,hash__Site__86
+348,hash__Site__87
+349,hash__Site__88
+350,hash__Site__89
+351,hash__Site__90
+352,hash__Site__91
+353,hash__Site__92
+354,hash__Site__93
+355,hash__Site__94
+356,hash__Site__95
+357,hash__Rank__0
+358,hash__Rank__1
+359,hash__Rank__2
+360,hash__Rank__3
+361,hash__Rank__4
+362,hash__Rank__5
+363,hash__Rank__6
+364,hash__Rank__7
+365,hash__Flag__0
+366,hash__Flag__1
+367,hash__Flag__2
+368,hash__Flag__3
+369,hash__Flag__4
+370,hash__Flag__5
+371,hash__Flag__6
+372,hash__Flag__7
+373,hash__Dc Avail Bucket__0
+374,hash__Dc Avail Bucket__1
+375,hash__Dc Avail Bucket__2
+376,hash__Dc Avail Bucket__3
+377,hash__Dc Avail Bucket__4
+378,hash__Dc Avail Bucket__5
+379,hash__Dc Avail Bucket__6
+380,hash__Dc Avail Bucket__7
