@@ -62,7 +62,7 @@ def apply_ak_specialist(df, base_audit, model):
         pred[mask]=np.minimum(flm[mask], dc[mask])
         applied[mask]=1
         reasons[mask]=f'AK {seg_name} rescue to one FLM/remainder'
-    out['Predicted Final Alloc']=pd.Series(pred).where(pred>0,'')
+    out['Predicted Final Alloc']=pd.Series(np.where(np.rint(pred).astype(int)>0, np.rint(pred).astype(int).astype(object), ''))
     out['AK Specialist Applied']=applied
     out['AK Specialist Reason']=reasons
     return out

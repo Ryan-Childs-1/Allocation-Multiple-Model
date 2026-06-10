@@ -69,6 +69,6 @@ def apply_site802_specialist(df, base_audit, model):
         out.loc[idx,'Site 802 Specialist Probability']=prob
         out.loc[idx,'Site 802 Specialist Raw FLMs']=packs
         out.loc[idx,'Site 802 Specialist Applied']=1
-    out['Predicted Final Alloc']=pd.Series(pred).where(pred>0,'')
+    out['Predicted Final Alloc']=pd.Series(np.where(np.rint(pred).astype(int)>0, np.rint(pred).astype(int).astype(object), ''))
     out['Site 802 Specialist Applied']=out.get('Site 802 Specialist Applied', pd.Series([0]*len(out))).fillna(0).astype(int)
     return out
